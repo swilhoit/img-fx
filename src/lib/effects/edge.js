@@ -1,8 +1,12 @@
 import { applyPreprocessing, getGrayscale, resizeImageData, hexToRgb } from '../preprocessing'
 
-export function createEdgeSketch (image, params) {
+export function createEdgeSketch (image, paramsRef) {
   return (p) => {
+    let edgeData = null
+    let imgW = 0, imgH = 0
+
     p.setup = () => {
+      const params = paramsRef.current
       if (!image) {
         p.createCanvas(params.canvasSize, params.canvasSize)
         const bg = hexToRgb(params.bgColor)
@@ -12,36 +16,40 @@ export function createEdgeSketch (image, params) {
       const { imageData, width, height } = resizeImageData(image, params.canvasSize)
       p.createCanvas(width, height)
       const pre = applyPreprocessing(imageData.data, width, height, params.preprocessing)
-      render(p, pre, width, height, params)
+      imgW = width
+      imgH = height
+
+      const gray = new Float32Array(width * height)
+      for (let i = 0; i < width * height; i++) {
+        gray[i] = getGrayscale(pre[i * 4], pre[i * 4 + 1], pre[i * 4 + 2])
+      }
+
+      edgeData = new Float32Array(width * height)
+      for (let y = 1; y < height - 1; y++) {
+        for (let x = 1; x < width - 1; x++) {
+          const gx =
+            -gray[(y - 1) * width + (x - 1)] + gray[(y - 1) * width + (x + 1)] +
+            -2 * gray[y * width + (x - 1)] + 2 * gray[y * width + (x + 1)] +
+            -gray[(y + 1) * width + (x - 1)] + gray[(y + 1) * width + (x + 1)]
+          const gy =
+            -gray[(y - 1) * width + (x - 1)] - 2 * gray[(y - 1) * width + x] - gray[(y - 1) * width + (x + 1)] +
+            gray[(y + 1) * width + (x - 1)] + 2 * gray[(y + 1) * width + x] + gray[(y + 1) * width + (x + 1)]
+          edgeData[y * width + x] = Math.min(255, Math.sqrt(gx * gx + gy * gy))
+        }
+      }
     }
 
-    p.draw = () => { p.noLoop() }
+    p.draw = () => {
+      if (!edgeData) { p.noLoop(); return }
+      render(p, edgeData, imgW, imgH, paramsRef.current)
+    }
   }
 }
 
-function render (p, data, width, height, params) {
+function render (p, edges, width, height, params) {
   const { threshold = 128, minDotSize = 2, maxDotSize = 10, cornerRadius = 0, stepSize = 4 } = params
   const bg = hexToRgb(params.bgColor)
   const fg = hexToRgb(params.fgColor)
-
-  const gray = new Float32Array(width * height)
-  for (let i = 0; i < width * height; i++) {
-    gray[i] = getGrayscale(data[i * 4], data[i * 4 + 1], data[i * 4 + 2])
-  }
-
-  const edges = new Float32Array(width * height)
-  for (let y = 1; y < height - 1; y++) {
-    for (let x = 1; x < width - 1; x++) {
-      const gx =
-        -gray[(y - 1) * width + (x - 1)] + gray[(y - 1) * width + (x + 1)] +
-        -2 * gray[y * width + (x - 1)] + 2 * gray[y * width + (x + 1)] +
-        -gray[(y + 1) * width + (x - 1)] + gray[(y + 1) * width + (x + 1)]
-      const gy =
-        -gray[(y - 1) * width + (x - 1)] - 2 * gray[(y - 1) * width + x] - gray[(y - 1) * width + (x + 1)] +
-        gray[(y + 1) * width + (x - 1)] + 2 * gray[(y + 1) * width + x] + gray[(y + 1) * width + (x + 1)]
-      edges[y * width + x] = Math.min(255, Math.sqrt(gx * gx + gy * gy))
-    }
-  }
 
   p.background(bg[0], bg[1], bg[2])
   p.fill(fg[0], fg[1], fg[2])

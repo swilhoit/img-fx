@@ -38,14 +38,14 @@ export default function DistortPage () {
 
   const anim = useAnimation(paramDefs)
 
-  const allDeps = [image, showEffect, bgColor, fgColor, canvasSize, preprocessing, distortionMap, threshold, xShift, yShift]
-  const params = { canvasSize, bgColor, fgColor, preprocessing, threshold, xShift, yShift }
+  const renderParams = { canvasSize, bgColor, fgColor, preprocessing, threshold, xShift, yShift }
 
-  const sketch = useCallback(
-    (p) => createDistortSketch(showEffect ? image : null, distortionMap, params)(p),
-    allDeps
+  const sketchFactory = useCallback(
+    (paramsRef) => createDistortSketch(showEffect ? image : null, distortionMap, paramsRef),
+    [image, showEffect, distortionMap]
   )
-  const { containerRef, p5Ref } = useP5(sketch, allDeps)
+
+  const { containerRef, p5Ref } = useP5(sketchFactory, [image, showEffect, canvasSize, preprocessing, distortionMap], renderParams)
   const videoExport = useVideoExport(containerRef)
 
   return (

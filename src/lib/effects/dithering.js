@@ -1,8 +1,12 @@
 import { applyPreprocessing, getGrayscale, resizeImageData, hexToRgb } from '../preprocessing'
 
-export function createDitheringSketch (image, params) {
+export function createDitheringSketch (image, paramsRef) {
   return (p) => {
+    let imgData = null
+    let imgW = 0, imgH = 0
+
     p.setup = () => {
+      const params = paramsRef.current
       if (!image) {
         p.createCanvas(params.canvasSize, params.canvasSize)
         const bg = hexToRgb(params.bgColor)
@@ -11,11 +15,15 @@ export function createDitheringSketch (image, params) {
       }
       const { imageData, width, height } = resizeImageData(image, params.canvasSize)
       p.createCanvas(width, height)
-      const pre = applyPreprocessing(imageData.data, width, height, params.preprocessing)
-      render(p, pre, width, height, params)
+      imgData = applyPreprocessing(imageData.data, width, height, params.preprocessing)
+      imgW = width
+      imgH = height
     }
 
-    p.draw = () => { p.noLoop() }
+    p.draw = () => {
+      if (!imgData) { p.noLoop(); return }
+      render(p, imgData, imgW, imgH, paramsRef.current)
+    }
   }
 }
 
@@ -32,7 +40,6 @@ function render (p, data, width, height, params) {
   const fg = hexToRgb(params.fgColor)
 
   const gray = new Float32Array(width * height)
-
   for (let i = 0; i < width * height; i++) {
     gray[i] = getGrayscale(data[i * 4], data[i * 4 + 1], data[i * 4 + 2])
   }
@@ -56,8 +63,6 @@ function render (p, data, width, height, params) {
         for (let dx = 0; dx < ps && x + dx < width; dx++) {
           const idx = ((y + dy) * width + (x + dx)) * 4
           if (colorMode === 'BW') {
-            const c = isLight ? fg : bg
-            // Invert logic: light pixels get bg color, dark get fg
             const color = isLight ? bg : fg
             p.pixels[idx] = color[0]
             p.pixels[idx + 1] = color[1]
@@ -90,7 +95,6 @@ function floydSteinberg (gray, w, h, threshold) {
       const val = old > threshold ? 255 : 0
       gray[idx] = val
       const err = old - val
-
       if (x + 1 < w) gray[idx + 1] += err * 7 / 16
       if (y + 1 < h) {
         if (x - 1 >= 0) gray[(y + 1) * w + x - 1] += err * 3 / 16

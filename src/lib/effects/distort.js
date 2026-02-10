@@ -1,8 +1,13 @@
 import { applyPreprocessing, resizeImageData, hexToRgb } from '../preprocessing'
 
-export function createDistortSketch (image, distortionMap, params) {
+export function createDistortSketch (image, distortionMap, paramsRef) {
   return (p) => {
+    let imgData = null
+    let mapData = null
+    let imgW = 0, imgH = 0
+
     p.setup = () => {
+      const params = paramsRef.current
       if (!image) {
         p.createCanvas(params.canvasSize, params.canvasSize)
         const bg = hexToRgb(params.bgColor)
@@ -11,19 +16,20 @@ export function createDistortSketch (image, distortionMap, params) {
       }
       const { imageData, width, height } = resizeImageData(image, params.canvasSize)
       p.createCanvas(width, height)
+      imgData = applyPreprocessing(imageData.data, width, height, params.preprocessing)
+      imgW = width
+      imgH = height
 
-      const pre = applyPreprocessing(imageData.data, width, height, params.preprocessing)
-
-      let mapData = null
       if (distortionMap) {
         const mapResult = resizeImageData(distortionMap, params.canvasSize)
         mapData = applyPreprocessing(mapResult.imageData.data, mapResult.width, mapResult.height, params.preprocessing)
       }
-
-      render(p, pre, width, height, params, mapData)
     }
 
-    p.draw = () => { p.noLoop() }
+    p.draw = () => {
+      if (!imgData) { p.noLoop(); return }
+      render(p, imgData, imgW, imgH, paramsRef.current, mapData)
+    }
   }
 }
 
@@ -36,7 +42,6 @@ function render (p, data, width, height, params, mapData) {
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       const idx = (y * width + x) * 4
-
       let sx = x, sy = y
 
       if (mapData) {
@@ -51,8 +56,6 @@ function render (p, data, width, height, params, mapData) {
       sy = Math.min(height - 1, Math.max(0, sy))
 
       const srcIdx = (sy * width + sx) * 4
-
-      // Out-of-bounds pixels get bg color
       if (sx < 0 || sx >= width || sy < 0 || sy >= height) {
         p.pixels[idx] = bg[0]
         p.pixels[idx + 1] = bg[1]
@@ -65,6 +68,5 @@ function render (p, data, width, height, params, mapData) {
       p.pixels[idx + 3] = 255
     }
   }
-
   p.updatePixels()
 }

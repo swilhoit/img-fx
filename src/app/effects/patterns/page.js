@@ -34,14 +34,14 @@ export default function PatternsPage () {
 
   const anim = useAnimation(paramDefs)
 
-  const allDeps = [image, showEffect, bgColor, fgColor, canvasSize, preprocessing, patternImages, threshold, gridDensity]
-  const params = { canvasSize, bgColor, fgColor, preprocessing, threshold, gridDensity }
+  const renderParams = { canvasSize, bgColor, fgColor, preprocessing, threshold, gridDensity }
 
-  const sketch = useCallback(
-    (p) => createPatternsSketch(showEffect ? image : null, patternImages, params)(p),
-    allDeps
+  const sketchFactory = useCallback(
+    (paramsRef) => createPatternsSketch(showEffect ? image : null, patternImages, paramsRef),
+    [image, showEffect, patternImages]
   )
-  const { containerRef, p5Ref } = useP5(sketch, allDeps)
+
+  const { containerRef, p5Ref } = useP5(sketchFactory, [image, showEffect, canvasSize, preprocessing, patternImages], renderParams)
   const videoExport = useVideoExport(containerRef)
 
   return (

@@ -40,14 +40,14 @@ export default function CellularAutomataPage () {
 
   const anim = useAnimation(paramDefs)
 
-  const allDeps = [image, showEffect, bgColor, fgColor, canvasSize, preprocessing, threshold, cellSize, steps, type, surviveLower, surviveUpper, birthLower, birthUpper]
-  const params = { canvasSize, bgColor, fgColor, preprocessing, threshold, cellSize, steps, type, surviveLower, surviveUpper, birthLower, birthUpper }
+  const renderParams = { canvasSize, bgColor, fgColor, preprocessing, threshold, cellSize, steps, type, surviveLower, surviveUpper, birthLower, birthUpper }
 
-  const sketch = useCallback(
-    (p) => createCellularAutomataSketch(showEffect ? image : null, params)(p),
-    allDeps
+  const sketchFactory = useCallback(
+    (paramsRef) => createCellularAutomataSketch(showEffect ? image : null, paramsRef),
+    [image, showEffect]
   )
-  const { containerRef, p5Ref } = useP5(sketch, allDeps)
+
+  const { containerRef, p5Ref } = useP5(sketchFactory, [image, showEffect, canvasSize, preprocessing], renderParams)
   const videoExport = useVideoExport(containerRef)
 
   return (

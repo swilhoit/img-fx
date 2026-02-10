@@ -34,14 +34,14 @@ export default function ScatterPage () {
 
   const anim = useAnimation(paramDefs)
 
-  const allDeps = [image, showEffect, bgColor, fgColor, canvasSize, preprocessing, pointDensity, minDotSize, maxDotSize, relaxIterations, relaxStrength]
-  const params = { canvasSize, bgColor, fgColor, preprocessing, pointDensity, minDotSize, maxDotSize, relaxIterations, relaxStrength }
+  const renderParams = { canvasSize, bgColor, fgColor, preprocessing, pointDensity, minDotSize, maxDotSize, relaxIterations, relaxStrength }
 
-  const sketch = useCallback(
-    (p) => createScatterSketch(showEffect ? image : null, params)(p),
-    allDeps
+  const sketchFactory = useCallback(
+    (paramsRef) => createScatterSketch(showEffect ? image : null, paramsRef),
+    [image, showEffect]
   )
-  const { containerRef, p5Ref } = useP5(sketch, allDeps)
+
+  const { containerRef, p5Ref } = useP5(sketchFactory, [image, showEffect, canvasSize, preprocessing], renderParams)
   const videoExport = useVideoExport(containerRef)
 
   return (

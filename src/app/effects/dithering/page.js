@@ -31,15 +31,14 @@ export default function DitheringPage () {
 
   const anim = useAnimation(paramDefs)
 
-  const allDeps = [image, showEffect, bgColor, fgColor, canvasSize, preprocessing, pattern, pixelSize, colorMode, threshold]
-  const params = { canvasSize, bgColor, fgColor, preprocessing, pattern, pixelSize, colorMode, threshold }
+  const renderParams = { canvasSize, bgColor, fgColor, preprocessing, pattern, pixelSize, colorMode, threshold }
 
-  const sketch = useCallback(
-    (p) => createDitheringSketch(showEffect ? image : null, params)(p),
-    allDeps
+  const sketchFactory = useCallback(
+    (paramsRef) => createDitheringSketch(showEffect ? image : null, paramsRef),
+    [image, showEffect]
   )
 
-  const { containerRef, p5Ref } = useP5(sketch, allDeps)
+  const { containerRef, p5Ref } = useP5(sketchFactory, [image, showEffect, canvasSize, preprocessing], renderParams)
   const videoExport = useVideoExport(containerRef)
 
   const handleExport = useCallback(() => {

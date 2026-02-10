@@ -1,8 +1,11 @@
 import { applyPreprocessing, getGrayscale, resizeImageData, hexToRgb } from '../preprocessing'
 
-export function createGradientsSketch (image, params) {
+export function createGradientsSketch (image, paramsRef) {
   return (p) => {
+    let processed = null
+
     p.setup = () => {
+      const params = paramsRef.current
       if (!image) {
         p.createCanvas(params.canvasSize, params.canvasSize)
         const bg = hexToRgb(params.bgColor)
@@ -12,14 +15,17 @@ export function createGradientsSketch (image, params) {
       const { imageData, width, height } = resizeImageData(image, params.canvasSize)
       p.createCanvas(width, height)
       const pre = applyPreprocessing(imageData.data, width, height, params.preprocessing)
-      render(p, pre, width, height, params)
+      processed = { data: pre, width, height }
     }
 
-    p.draw = () => { p.noLoop() }
+    p.draw = () => {
+      if (!processed) { p.noLoop(); return }
+      render(p, processed, paramsRef.current)
+    }
   }
 }
 
-function render (p, data, width, height, params) {
+function render (p, img, params) {
   const { threshold = 128, stepSize = 8, shapeType = 'rect' } = params
   const bg = hexToRgb(params.bgColor)
   const fg = hexToRgb(params.fgColor)
@@ -27,17 +33,17 @@ function render (p, data, width, height, params) {
   p.background(bg[0], bg[1], bg[2])
   p.noStroke()
 
-  const cols = Math.ceil(width / stepSize)
-  const rows = Math.ceil(height / stepSize)
+  const cols = Math.ceil(img.width / stepSize)
+  const rows = Math.ceil(img.height / stepSize)
 
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
       const cx = c * stepSize + stepSize / 2
       const cy = r * stepSize + stepSize / 2
-      const px = Math.floor(Math.min(cx, width - 1))
-      const py = Math.floor(Math.min(cy, height - 1))
-      const idx = (py * width + px) * 4
-      const gray = getGrayscale(data[idx], data[idx + 1], data[idx + 2])
+      const px = Math.floor(Math.min(cx, img.width - 1))
+      const py = Math.floor(Math.min(cy, img.height - 1))
+      const idx = (py * img.width + px) * 4
+      const gray = getGrayscale(img.data[idx], img.data[idx + 1], img.data[idx + 2])
 
       if (gray < threshold) {
         const t = 1 - gray / threshold

@@ -1,10 +1,11 @@
 import { applyPreprocessing, getGrayscale, resizeImageData, hexToRgb } from '../preprocessing'
 
-export function createDotsSketch (image, params) {
+export function createDotsSketch (image, paramsRef) {
   return (p) => {
-    let processed
+    let processed = null
 
     p.setup = () => {
+      const params = paramsRef.current
       if (!image) {
         p.createCanvas(params.canvasSize, params.canvasSize)
         const bg = hexToRgb(params.bgColor)
@@ -15,10 +16,12 @@ export function createDotsSketch (image, params) {
       p.createCanvas(width, height)
       const pre = applyPreprocessing(imageData.data, width, height, params.preprocessing)
       processed = { data: pre, width, height }
-      render(p, processed, params)
     }
 
-    p.draw = () => { p.noLoop() }
+    p.draw = () => {
+      if (!processed) { p.noLoop(); return }
+      render(p, processed, paramsRef.current)
+    }
   }
 }
 

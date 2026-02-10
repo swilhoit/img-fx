@@ -1,8 +1,12 @@
 import { applyPreprocessing, getGrayscale, resizeImageData, hexToRgb } from '../preprocessing'
 
-export function createRecolorSketch (image, params) {
+export function createRecolorSketch (image, paramsRef) {
   return (p) => {
+    let imgData = null
+    let imgW = 0, imgH = 0
+
     p.setup = () => {
+      const params = paramsRef.current
       if (!image) {
         p.createCanvas(params.canvasSize, params.canvasSize)
         const bg = hexToRgb(params.bgColor)
@@ -11,11 +15,15 @@ export function createRecolorSketch (image, params) {
       }
       const { imageData, width, height } = resizeImageData(image, params.canvasSize)
       p.createCanvas(width, height)
-      const pre = applyPreprocessing(imageData.data, width, height, params.preprocessing)
-      render(p, pre, width, height, params)
+      imgData = applyPreprocessing(imageData.data, width, height, params.preprocessing)
+      imgW = width
+      imgH = height
     }
 
-    p.draw = () => { p.noLoop() }
+    p.draw = () => {
+      if (!imgData) { p.noLoop(); return }
+      render(p, imgData, imgW, imgH, paramsRef.current)
+    }
   }
 }
 
@@ -72,14 +80,12 @@ function render (p, data, width, height, params) {
       }
 
       const color = sampleGradient(sortedStops, t)
-
       p.pixels[idx] = color[0]
       p.pixels[idx + 1] = color[1]
       p.pixels[idx + 2] = color[2]
       p.pixels[idx + 3] = 255
     }
   }
-
   p.updatePixels()
 }
 
@@ -88,7 +94,6 @@ function sampleGradient (stops, t) {
   if (stops.length === 1) return hexToRgb(stops[0].color)
 
   const pos = t * 100
-
   if (pos <= stops[0].position) return hexToRgb(stops[0].color)
   if (pos >= stops[stops.length - 1].position) return hexToRgb(stops[stops.length - 1].color)
 
@@ -105,8 +110,5 @@ function sampleGradient (stops, t) {
       ]
     }
   }
-
   return hexToRgb(stops[stops.length - 1].color)
 }
-
-

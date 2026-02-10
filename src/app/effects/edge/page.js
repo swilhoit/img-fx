@@ -34,14 +34,14 @@ export default function EdgePage () {
 
   const anim = useAnimation(paramDefs)
 
-  const allDeps = [image, showEffect, bgColor, fgColor, canvasSize, preprocessing, threshold, minDotSize, maxDotSize, cornerRadius, stepSize]
-  const params = { canvasSize, bgColor, fgColor, preprocessing, threshold, minDotSize, maxDotSize, cornerRadius, stepSize }
+  const renderParams = { canvasSize, bgColor, fgColor, preprocessing, threshold, minDotSize, maxDotSize, cornerRadius, stepSize }
 
-  const sketch = useCallback(
-    (p) => createEdgeSketch(showEffect ? image : null, params)(p),
-    allDeps
+  const sketchFactory = useCallback(
+    (paramsRef) => createEdgeSketch(showEffect ? image : null, paramsRef),
+    [image, showEffect]
   )
-  const { containerRef, p5Ref } = useP5(sketch, allDeps)
+
+  const { containerRef, p5Ref } = useP5(sketchFactory, [image, showEffect, canvasSize, preprocessing], renderParams)
   const videoExport = useVideoExport(containerRef)
 
   return (

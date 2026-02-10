@@ -38,14 +38,14 @@ export default function StipplingPage () {
 
   const anim = useAnimation(paramDefs)
 
-  const params = { canvasSize, bgColor, fgColor, preprocessing, threshold, gridType, gridAngle, ySquares, xSquares, minSquareWidth, maxSquareWidth }
+  const renderParams = { canvasSize, bgColor, fgColor, preprocessing, threshold, gridType, gridAngle, ySquares, xSquares, minSquareWidth, maxSquareWidth }
 
-  const sketch = useCallback(
-    (p) => createStipplingSketch(showEffect ? image : null, params)(p),
-    [image, showEffect, bgColor, fgColor, canvasSize, preprocessing, threshold, gridType, gridAngle, ySquares, xSquares, minSquareWidth, maxSquareWidth]
+  const sketchFactory = useCallback(
+    (paramsRef) => createStipplingSketch(showEffect ? image : null, paramsRef),
+    [image, showEffect]
   )
 
-  const { containerRef, p5Ref } = useP5(sketch, [image, showEffect, bgColor, fgColor, canvasSize, preprocessing, threshold, gridType, gridAngle, ySquares, xSquares, minSquareWidth, maxSquareWidth])
+  const { containerRef, p5Ref } = useP5(sketchFactory, [image, showEffect, canvasSize, preprocessing], renderParams)
   const videoExport = useVideoExport(containerRef)
 
   const handleExport = useCallback(() => {

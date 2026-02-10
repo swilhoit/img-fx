@@ -1,8 +1,11 @@
 import { applyPreprocessing, getGrayscale, resizeImageData, hexToRgb } from '../preprocessing'
 
-export function createASCIISketch (image, params) {
+export function createASCIISketch (image, paramsRef) {
   return (p) => {
+    let processed = null
+
     p.setup = () => {
+      const params = paramsRef.current
       const cols = params.columns || 80
       const rows = params.rows || 40
       const charW = 7
@@ -20,26 +23,33 @@ export function createASCIISketch (image, params) {
 
       const { imageData, width, height } = resizeImageData(image, Math.max(cols, rows))
       const pre = applyPreprocessing(imageData.data, width, height, params.preprocessing)
-      render(p, pre, width, height, params, cols, rows, charW, charH)
+      processed = { data: pre, width, height }
     }
 
-    p.draw = () => { p.noLoop() }
+    p.draw = () => {
+      if (!processed) { p.noLoop(); return }
+      const params = paramsRef.current
+      const cols = params.columns || 80
+      const rows = params.rows || 40
+      render(p, processed, params, cols, rows, 7, 14)
+    }
   }
 }
 
 const CHAR_RAMPS = {
   standard: ' .:-=+*#%@',
-  blocks: ' ░▒▓█',
+  blocks: ' \u2591\u2592\u2593\u2588',
   simple: ' .:oO@',
   detailed: ' .\'`^",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$'
 }
 
-function render (p, data, imgW, imgH, params, cols, rows, charW, charH) {
+function render (p, img, params, cols, rows, charW, charH) {
   const { characterSet = 'standard', customChars = '', invertRamp = false, showBorders = false } = params
   let ramp = characterSet === 'custom' && customChars.length >= 2
     ? customChars
     : CHAR_RAMPS[characterSet] || CHAR_RAMPS.standard
   if (invertRamp) ramp = ramp.split('').reverse().join('')
+
   const bg = hexToRgb(params.bgColor)
   const fg = hexToRgb(params.fgColor)
 
@@ -49,15 +59,15 @@ function render (p, data, imgW, imgH, params, cols, rows, charW, charH) {
   p.textSize(12)
   p.textAlign(p.LEFT, p.TOP)
 
-  const cellW = imgW / cols
-  const cellH = imgH / rows
+  const cellW = img.width / cols
+  const cellH = img.height / rows
 
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
-      const px = Math.floor(Math.min((c + 0.5) * cellW, imgW - 1))
-      const py = Math.floor(Math.min((r + 0.5) * cellH, imgH - 1))
-      const idx = (py * imgW + px) * 4
-      const gray = getGrayscale(data[idx], data[idx + 1], data[idx + 2])
+      const px = Math.floor(Math.min((c + 0.5) * cellW, img.width - 1))
+      const py = Math.floor(Math.min((r + 0.5) * cellH, img.height - 1))
+      const idx = (py * img.width + px) * 4
+      const gray = getGrayscale(img.data[idx], img.data[idx + 1], img.data[idx + 2])
       const charIdx = Math.floor((gray / 255) * (ramp.length - 1))
       const ch = ramp[charIdx]
 

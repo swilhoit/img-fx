@@ -1,8 +1,9 @@
 import { applyPreprocessing, getGrayscale, resizeImageData, hexToRgb } from '../preprocessing'
 
-export function createPatternsSketch (image, patternImages, params) {
+export function createPatternsSketch (image, patternImages, paramsRef) {
   return (p) => {
     let patternsLoaded = []
+    let processed = null
 
     p.preload = () => {
       if (patternImages && patternImages.length > 0) {
@@ -11,6 +12,7 @@ export function createPatternsSketch (image, patternImages, params) {
     }
 
     p.setup = () => {
+      const params = paramsRef.current
       if (!image) {
         p.createCanvas(params.canvasSize, params.canvasSize)
         const bg = hexToRgb(params.bgColor)
@@ -20,32 +22,35 @@ export function createPatternsSketch (image, patternImages, params) {
       const { imageData, width, height } = resizeImageData(image, params.canvasSize)
       p.createCanvas(width, height)
       const pre = applyPreprocessing(imageData.data, width, height, params.preprocessing)
-      render(p, pre, width, height, params, patternsLoaded)
+      processed = { data: pre, width, height }
     }
 
-    p.draw = () => { p.noLoop() }
+    p.draw = () => {
+      if (!processed) { p.noLoop(); return }
+      render(p, processed, paramsRef.current, patternsLoaded)
+    }
   }
 }
 
-function render (p, data, width, height, params, patterns) {
+function render (p, img, params, patterns) {
   const { threshold = 128, gridDensity = 20 } = params
   const bg = hexToRgb(params.bgColor)
   const fg = hexToRgb(params.fgColor)
 
   p.background(bg[0], bg[1], bg[2])
 
-  const cellSize = Math.max(4, Math.round(width / gridDensity))
-  const cols = Math.ceil(width / cellSize)
-  const rows = Math.ceil(height / cellSize)
+  const cellSize = Math.max(4, Math.round(img.width / gridDensity))
+  const cols = Math.ceil(img.width / cellSize)
+  const rows = Math.ceil(img.height / cellSize)
 
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
       const cx = c * cellSize
       const cy = r * cellSize
-      const px = Math.floor(Math.min(cx + cellSize / 2, width - 1))
-      const py = Math.floor(Math.min(cy + cellSize / 2, height - 1))
-      const idx = (py * width + px) * 4
-      const gray = getGrayscale(data[idx], data[idx + 1], data[idx + 2])
+      const px = Math.floor(Math.min(cx + cellSize / 2, img.width - 1))
+      const py = Math.floor(Math.min(cy + cellSize / 2, img.height - 1))
+      const idx = (py * img.width + px) * 4
+      const gray = getGrayscale(img.data[idx], img.data[idx + 1], img.data[idx + 2])
 
       if (gray < threshold) {
         if (patterns.length > 0) {

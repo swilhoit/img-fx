@@ -1,8 +1,11 @@
 import { applyPreprocessing, getGrayscale, resizeImageData, hexToRgb } from '../preprocessing'
 
-export function createScatterSketch (image, params) {
+export function createScatterSketch (image, paramsRef) {
   return (p) => {
+    let processed = null
+
     p.setup = () => {
+      const params = paramsRef.current
       if (!image) {
         p.createCanvas(params.canvasSize, params.canvasSize)
         const bg = hexToRgb(params.bgColor)
@@ -12,14 +15,17 @@ export function createScatterSketch (image, params) {
       const { imageData, width, height } = resizeImageData(image, params.canvasSize)
       p.createCanvas(width, height)
       const pre = applyPreprocessing(imageData.data, width, height, params.preprocessing)
-      render(p, pre, width, height, params)
+      processed = { data: pre, width, height }
     }
 
-    p.draw = () => { p.noLoop() }
+    p.draw = () => {
+      if (!processed) { p.noLoop(); return }
+      render(p, processed, paramsRef.current)
+    }
   }
 }
 
-function render (p, data, width, height, params) {
+function render (p, img, params) {
   const { pointDensity = 0.004, minDotSize = 4, maxDotSize = 14, relaxIterations = 1, relaxStrength = 0.16 } = params
   const bg = hexToRgb(params.bgColor)
   const fg = hexToRgb(params.fgColor)
@@ -28,16 +34,16 @@ function render (p, data, width, height, params) {
   p.fill(fg[0], fg[1], fg[2])
   p.noStroke()
 
-  const numPoints = Math.floor(width * height * pointDensity)
+  const numPoints = Math.floor(img.width * img.height * pointDensity)
   let points = []
 
   for (let i = 0; i < numPoints; i++) {
-    const x = Math.random() * width
-    const y = Math.random() * height
-    const px = Math.floor(Math.min(x, width - 1))
-    const py = Math.floor(Math.min(y, height - 1))
-    const idx = (py * width + px) * 4
-    const gray = getGrayscale(data[idx], data[idx + 1], data[idx + 2])
+    const x = Math.random() * img.width
+    const y = Math.random() * img.height
+    const px = Math.floor(Math.min(x, img.width - 1))
+    const py = Math.floor(Math.min(y, img.height - 1))
+    const idx = (py * img.width + px) * 4
+    const gray = getGrayscale(img.data[idx], img.data[idx + 1], img.data[idx + 2])
     const acceptance = 1 - gray / 255
     if (Math.random() < acceptance) {
       points.push({ x, y, gray })
@@ -61,8 +67,8 @@ function render (p, data, width, height, params) {
       if (count > 0) {
         points[i].x += fx / count
         points[i].y += fy / count
-        points[i].x = Math.max(0, Math.min(width, points[i].x))
-        points[i].y = Math.max(0, Math.min(height, points[i].y))
+        points[i].x = Math.max(0, Math.min(img.width, points[i].x))
+        points[i].y = Math.max(0, Math.min(img.height, points[i].y))
       }
     }
   }

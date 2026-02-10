@@ -1,8 +1,12 @@
 import { applyPreprocessing, getGrayscale, resizeImageData, hexToRgb } from '../preprocessing'
 
-export function createBevelSketch (image, params) {
+export function createBevelSketch (image, paramsRef) {
   return (p) => {
+    let grayData = null
+    let imgW = 0, imgH = 0
+
     p.setup = () => {
+      const params = paramsRef.current
       if (!image) {
         p.createCanvas(params.canvasSize, params.canvasSize)
         const bg = hexToRgb(params.bgColor)
@@ -12,22 +16,26 @@ export function createBevelSketch (image, params) {
       const { imageData, width, height } = resizeImageData(image, params.canvasSize)
       p.createCanvas(width, height)
       const pre = applyPreprocessing(imageData.data, width, height, params.preprocessing)
-      render(p, pre, width, height, params)
+      imgW = width
+      imgH = height
+
+      grayData = new Float32Array(width * height)
+      for (let i = 0; i < width * height; i++) {
+        grayData[i] = getGrayscale(pre[i * 4], pre[i * 4 + 1], pre[i * 4 + 2])
+      }
     }
 
-    p.draw = () => { p.noLoop() }
+    p.draw = () => {
+      if (!grayData) { p.noLoop(); return }
+      render(p, grayData, imgW, imgH, paramsRef.current)
+    }
   }
 }
 
-function render (p, data, width, height, params) {
+function render (p, gray, width, height, params) {
   const { depth = 3, lightAngle = 135, effectThreshold = 128 } = params
   const bg = hexToRgb(params.bgColor)
   const fg = hexToRgb(params.fgColor)
-
-  const gray = new Float32Array(width * height)
-  for (let i = 0; i < width * height; i++) {
-    gray[i] = getGrayscale(data[i * 4], data[i * 4 + 1], data[i * 4 + 2])
-  }
 
   const rad = lightAngle * Math.PI / 180
   const lx = Math.cos(rad)
@@ -52,7 +60,7 @@ function render (p, data, width, height, params) {
       const dy = (gray[(y + 1) * width + x] - gray[(y - 1) * width + x]) * depth
 
       const dot = (dx * lx + dy * ly) / (Math.sqrt(dx * dx + dy * dy + 1) || 1)
-      const t = (dot + 1) / 2 // 0..1
+      const t = (dot + 1) / 2
 
       p.pixels[idx] = Math.round(bg[0] + (fg[0] - bg[0]) * t)
       p.pixels[idx + 1] = Math.round(bg[1] + (fg[1] - bg[1]) * t)
@@ -60,6 +68,5 @@ function render (p, data, width, height, params) {
       p.pixels[idx + 3] = 255
     }
   }
-
   p.updatePixels()
 }

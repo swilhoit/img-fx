@@ -43,14 +43,14 @@ export default function RecolorPage () {
 
   const anim = useAnimation(paramDefs)
 
-  const allDeps = [image, showEffect, bgColor, fgColor, canvasSize, preprocessing, posterize, noiseIntensity, noiseScale, noiseGamma, gradientRepetitions, gradientMap, stops]
-  const params = { canvasSize, bgColor, fgColor, preprocessing, posterize, noiseIntensity, noiseScale, noiseGamma, gradientRepetitions, gradientMap, stops }
+  const renderParams = { canvasSize, bgColor, fgColor, preprocessing, posterize, noiseIntensity, noiseScale, noiseGamma, gradientRepetitions, gradientMap, stops }
 
-  const sketch = useCallback(
-    (p) => createRecolorSketch(showEffect ? image : null, params)(p),
-    allDeps
+  const sketchFactory = useCallback(
+    (paramsRef) => createRecolorSketch(showEffect ? image : null, paramsRef),
+    [image, showEffect]
   )
-  const { containerRef, p5Ref } = useP5(sketch, allDeps)
+
+  const { containerRef, p5Ref } = useP5(sketchFactory, [image, showEffect, canvasSize, preprocessing], renderParams)
   const videoExport = useVideoExport(containerRef)
 
   return (

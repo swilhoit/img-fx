@@ -40,15 +40,14 @@ export default function DotsPage () {
 
   const anim = useAnimation(paramDefs)
 
-  const allDeps = [image, showEffect, bgColor, fgColor, canvasSize, preprocessing, threshold, gridType, gridAngle, minDotSize, maxDotSize, cornerRadius, stepSize, noise]
-  const params = { canvasSize, bgColor, fgColor, preprocessing, threshold, gridType, gridAngle, minDotSize, maxDotSize, cornerRadius, stepSize, noise }
+  const renderParams = { canvasSize, bgColor, fgColor, preprocessing, threshold, gridType, gridAngle, minDotSize, maxDotSize, cornerRadius, stepSize, noise }
 
-  const sketch = useCallback(
-    (p) => createDotsSketch(showEffect ? image : null, params)(p),
-    allDeps
+  const sketchFactory = useCallback(
+    (paramsRef) => createDotsSketch(showEffect ? image : null, paramsRef),
+    [image, showEffect]
   )
 
-  const { containerRef, p5Ref } = useP5(sketch, allDeps)
+  const { containerRef, p5Ref } = useP5(sketchFactory, [image, showEffect, canvasSize, preprocessing], renderParams)
   const videoExport = useVideoExport(containerRef)
 
   const handleExport = useCallback(() => {

@@ -1,8 +1,12 @@
 import { applyPreprocessing, resizeImageData, hexToRgb } from '../preprocessing'
 
-export function createCRTSketch (image, params) {
+export function createCRTSketch (image, paramsRef) {
   return (p) => {
+    let imgData = null
+    let imgW = 0, imgH = 0
+
     p.setup = () => {
+      const params = paramsRef.current
       if (!image) {
         p.createCanvas(params.canvasSize, params.canvasSize)
         const bg = hexToRgb(params.bgColor)
@@ -11,11 +15,15 @@ export function createCRTSketch (image, params) {
       }
       const { imageData, width, height } = resizeImageData(image, params.canvasSize)
       p.createCanvas(width, height)
-      const pre = applyPreprocessing(imageData.data, width, height, params.preprocessing)
-      render(p, pre, width, height, params)
+      imgData = applyPreprocessing(imageData.data, width, height, params.preprocessing)
+      imgW = width
+      imgH = height
     }
 
-    p.draw = () => { p.noLoop() }
+    p.draw = () => {
+      if (!imgData) { p.noLoop(); return }
+      render(p, imgData, imgW, imgH, paramsRef.current)
+    }
   }
 }
 
@@ -32,7 +40,6 @@ function render (p, data, width, height, params) {
 
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
-      // Barrel distortion
       const cx = x / width - 0.5
       const cy = y / height - 0.5
       const r2 = cx * cx + cy * cy
@@ -42,7 +49,6 @@ function render (p, data, width, height, params) {
       sx = Math.min(width - 1, Math.max(0, sx))
       sy = Math.min(height - 1, Math.max(0, sy))
 
-      // Chromatic aberration
       const rsx = Math.min(width - 1, Math.max(0, sx + Math.round(redOffsetX)))
       const rsy = Math.min(height - 1, Math.max(0, sy + Math.round(redOffsetY)))
       const bsx = Math.min(width - 1, Math.max(0, sx + Math.round(blueOffsetX)))
@@ -52,7 +58,6 @@ function render (p, data, width, height, params) {
       let gv = data[(sy * width + sx) * 4 + 1]
       let bv = data[(bsy * width + bsx) * 4 + 2]
 
-      // Scanlines
       let scanline = 1
       if (type === 'Monitor' || type === 'TV') {
         scanline = (y % Math.round(dotPitch)) === 0 ? falloff : 1
@@ -60,7 +65,6 @@ function render (p, data, width, height, params) {
         scanline = 1 - falloff * 0.3 * Math.abs(Math.sin(y * Math.PI / dotPitch))
       }
 
-      // Dot pattern
       const dotPhase = (x % Math.round(dotPitch * dotScale))
       const subpixel = dotPhase / (dotPitch * dotScale)
       if (type === 'Monitor') {
@@ -73,7 +77,6 @@ function render (p, data, width, height, params) {
       gv *= scanline * (1 + glowIntensity * 0.2)
       bv *= scanline * (1 + glowIntensity * 0.2)
 
-      // Bloom
       if (bloomIntensity > 0) {
         const brightness = (rv + gv + bv) / 3
         if (brightness > bloomThreshold) {
@@ -91,6 +94,5 @@ function render (p, data, width, height, params) {
       p.pixels[idx + 3] = 255
     }
   }
-
   p.updatePixels()
 }

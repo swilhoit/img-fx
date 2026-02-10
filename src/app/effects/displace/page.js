@@ -30,14 +30,14 @@ export default function DisplacePage () {
 
   const anim = useAnimation(paramDefs)
 
-  const allDeps = [image, showEffect, bgColor, fgColor, canvasSize, preprocessing, stepSize, displacement, dotSize]
-  const params = { canvasSize, bgColor, fgColor, preprocessing, stepSize, displacement, dotSize }
+  const renderParams = { canvasSize, bgColor, fgColor, preprocessing, stepSize, displacement, dotSize }
 
-  const sketch = useCallback(
-    (p) => createDisplaceSketch(showEffect ? image : null, params)(p),
-    allDeps
+  const sketchFactory = useCallback(
+    (paramsRef) => createDisplaceSketch(showEffect ? image : null, paramsRef),
+    [image, showEffect]
   )
-  const { containerRef, p5Ref } = useP5(sketch, allDeps)
+
+  const { containerRef, p5Ref } = useP5(sketchFactory, [image, showEffect, canvasSize, preprocessing], renderParams)
   const videoExport = useVideoExport(containerRef)
 
   return (

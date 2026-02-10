@@ -30,14 +30,14 @@ export default function ASCIIPage () {
 
   const anim = useAnimation(paramDefs)
 
-  const allDeps = [image, showEffect, bgColor, fgColor, preprocessing, columns, rows, characterSet, customChars, invertRamp, showBorders]
-  const params = { canvasSize: 600, bgColor, fgColor, preprocessing, columns, rows, characterSet, customChars, invertRamp, showBorders }
+  const renderParams = { canvasSize: 600, bgColor, fgColor, preprocessing, columns, rows, characterSet, customChars, invertRamp, showBorders }
 
-  const sketch = useCallback(
-    (p) => createASCIISketch(showEffect ? image : null, params)(p),
-    allDeps
+  const sketchFactory = useCallback(
+    (paramsRef) => createASCIISketch(showEffect ? image : null, paramsRef),
+    [image, showEffect]
   )
-  const { containerRef, p5Ref } = useP5(sketch, allDeps)
+
+  const { containerRef, p5Ref } = useP5(sketchFactory, [image, showEffect, columns, rows, preprocessing], renderParams)
   const videoExport = useVideoExport(containerRef)
 
   return (
@@ -51,7 +51,7 @@ export default function ASCIIPage () {
         <SelectInput label="Character Set" value={characterSet} onChange={setCharacterSet} options={['standard', 'blocks', 'simple', 'detailed', 'custom']} />
         {characterSet === 'custom' && (
           <div style={{ padding: '4px 0' }}>
-            <label style={{ display: 'block', fontSize: 11, color: 'var(--text-dim)', marginBottom: 4 }}>Custom Characters (light → dark)</label>
+            <label style={{ display: 'block', fontSize: 11, color: 'var(--text-dim)', marginBottom: 4 }}>Custom Characters (light to dark)</label>
             <input
               type="text"
               value={customChars}
