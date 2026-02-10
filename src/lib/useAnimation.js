@@ -48,6 +48,7 @@ export default function useAnimation (paramDefs, initialExcluded) {
 
   const seedsRef = useRef(null)
   const baselineRef = useRef(null)
+  const lastSetRef = useRef({})
   const frameRef = useRef(null)
   const timeRef = useRef(0)
   const lastFrameRef = useRef(0)
@@ -63,6 +64,7 @@ export default function useAnimation (paramDefs, initialExcluded) {
     }
     seedsRef.current = seeds
     baselineRef.current = baseline
+    lastSetRef.current = {}
     timeRef.current = 0
     lastFrameRef.current = performance.now()
     setEnabled(true)
@@ -114,9 +116,16 @@ export default function useAnimation (paramDefs, initialExcluded) {
       for (const key of Object.keys(defs)) {
         if (ex.has(key)) continue
 
-        const { set, min, max, step } = defs[key]
-        const base = baseline[key]
+        const { value, set, min, max, step } = defs[key]
         const range = max - min
+
+        // Detect manual slider change: if current value differs from
+        // what animation last set, user moved the slider -- update baseline
+        if (lastSetRef.current[key] !== undefined && value !== lastSetRef.current[key]) {
+          baseline[key] = value
+        }
+
+        const base = baseline[key]
 
         // Noise-based offset scaled by intensity and randomness
         const noiseVal = smoothNoise(timeRef.current * (0.5 + randomness * 1.5), seeds[key])
@@ -133,6 +142,7 @@ export default function useAnimation (paramDefs, initialExcluded) {
           newVal = Math.round(newVal * precision) / precision
         }
 
+        lastSetRef.current[key] = newVal
         set(newVal)
       }
 
