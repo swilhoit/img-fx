@@ -29,9 +29,22 @@ export default function useAnimation (paramDefs) {
   const [speed, setSpeed] = useState(0.5)
   const [randomness, setRandomness] = useState(0.5)
   const [intensity, setIntensity] = useState(0.5)
+  const [excluded, setExcluded] = useState(new Set())
 
   const defsRef = useRef(paramDefs)
   defsRef.current = paramDefs
+
+  const excludedRef = useRef(excluded)
+  excludedRef.current = excluded
+
+  const toggleExcluded = useCallback((key) => {
+    setExcluded(prev => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
+    })
+  }, [])
 
   const seedsRef = useRef(null)
   const baselineRef = useRef(null)
@@ -96,7 +109,11 @@ export default function useAnimation (paramDefs) {
       const seeds = seedsRef.current
       const baseline = baselineRef.current
 
+      const ex = excludedRef.current
+
       for (const key of Object.keys(defs)) {
+        if (ex.has(key)) continue
+
         const { set, min, max, step } = defs[key]
         const base = baseline[key]
         const range = max - min
@@ -135,6 +152,8 @@ export default function useAnimation (paramDefs) {
     reseed,
     speed, setSpeed,
     randomness, setRandomness,
-    intensity, setIntensity
+    intensity, setIntensity,
+    excluded, toggleExcluded,
+    paramKeys: Object.keys(paramDefs)
   }
 }
