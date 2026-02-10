@@ -1,17 +1,14 @@
 import { applyPreprocessing, getGrayscale, resizeImageData, hexToRgb } from '../preprocessing'
 
-const ALL_CHARS = ' .\'`^",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$░▒▓█'
-
 export function createASCIISketch (image, paramsRef) {
   return (p) => {
     let processed = null
+    let frameCount = 0
 
     p.setup = () => {
-      const charW = 7
-      const charH = 14
       const maxCols = 200
       const maxRows = 100
-      p.createCanvas(maxCols * charW, maxRows * charH)
+      p.createCanvas(maxCols * 7, maxRows * 14)
 
       if (!image) {
         const bg = hexToRgb(paramsRef.current.bgColor)
@@ -27,10 +24,11 @@ export function createASCIISketch (image, paramsRef) {
 
     p.draw = () => {
       if (!processed) { p.noLoop(); return }
+      frameCount++
       const params = paramsRef.current
       const cols = params.columns || 80
       const rows = params.rows || 40
-      render(p, processed, params, cols, rows, 7, 14)
+      render(p, processed, params, cols, rows, 7, 14, frameCount)
     }
   }
 }
@@ -42,10 +40,11 @@ const CHAR_RAMPS = {
   detailed: ' .\'`^",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$'
 }
 
-function render (p, img, params, cols, rows, charW, charH) {
+function render (p, img, params, cols, rows, charW, charH, frame) {
   const {
     characterSet = 'standard', customChars = '', invertRamp = false,
-    showBorders = false, chaos = 0, fontSize = 12, charSpread = 0
+    showBorders = false, drift = 0, jitter = 0, wave = 0,
+    fontSize = 12, brightness = 0
   } = params
 
   let ramp = characterSet === 'custom' && customChars.length >= 2
@@ -53,6 +52,7 @@ function render (p, img, params, cols, rows, charW, charH) {
     : CHAR_RAMPS[characterSet] || CHAR_RAMPS.standard
   if (invertRamp) ramp = ramp.split('').reverse().join('')
 
+  const rampLen = ramp.length
   const bg = hexToRgb(params.bgColor)
   const fg = hexToRgb(params.fgColor)
 
@@ -64,6 +64,7 @@ function render (p, img, params, cols, rows, charW, charH) {
 
   const cellW = img.width / cols
   const cellH = img.height / rows
+  const t = frame * 0.05
 
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
@@ -72,24 +73,34 @@ function render (p, img, params, cols, rows, charW, charH) {
       const idx = (py * img.width + px) * 4
       const gray = getGrayscale(img.data[idx], img.data[idx + 1], img.data[idx + 2])
 
-      let charIdx = Math.floor((gray / 255) * (ramp.length - 1))
+      let charIdx = (gray / 255) * (rampLen - 1)
 
-      // charSpread shifts the brightness-to-character mapping
-      if (charSpread !== 0) {
-        charIdx = Math.floor(charIdx + charSpread * (ramp.length - 1) * 0.5)
-        charIdx = ((charIdx % ramp.length) + ramp.length) % ramp.length
+      // Brightness shifts the entire mapping
+      if (brightness !== 0) {
+        charIdx += brightness * (rampLen - 1)
       }
 
-      let ch
-      if (chaos > 0 && Math.random() < chaos) {
-        // Replace with a random character from the full set, weighted by brightness
-        const pool = chaos > 0.5 ? ALL_CHARS : ramp
-        ch = pool[Math.floor(Math.random() * pool.length)]
-      } else {
-        ch = ramp[charIdx]
+      // Drift: smooth per-cell noise offset that evolves over time
+      if (drift > 0) {
+        const nx = Math.sin(c * 0.3 + t * 0.7) * Math.cos(r * 0.2 + t * 0.5)
+        charIdx += nx * drift * (rampLen - 1) * 0.5
       }
 
-      p.text(ch, c * charW, r * charH)
+      // Wave: directional sine sweep across the grid
+      if (wave > 0) {
+        const waveOffset = Math.sin((c + r) * 0.15 + t * 1.2) * wave * (rampLen - 1) * 0.4
+        charIdx += waveOffset
+      }
+
+      // Jitter: small random per-cell flicker
+      if (jitter > 0) {
+        charIdx += (Math.random() - 0.5) * jitter * (rampLen - 1) * 0.5
+      }
+
+      charIdx = Math.round(charIdx)
+      charIdx = ((charIdx % rampLen) + rampLen) % rampLen
+
+      p.text(ramp[charIdx], c * charW, r * charH)
     }
   }
 

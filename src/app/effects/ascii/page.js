@@ -25,21 +25,25 @@ export default function ASCIIPage () {
   const [customChars, setCustomChars] = useState('')
   const [invertRamp, setInvertRamp] = useState(false)
   const [showBorders, setShowBorders] = useState(false)
-  const [chaos, setChaos] = useState(0)
+  const [drift, setDrift] = useState(0)
+  const [jitter, setJitter] = useState(0)
+  const [wave, setWave] = useState(0)
   const [fontSize, setFontSize] = useState(12)
-  const [charSpread, setCharSpread] = useState(0)
+  const [brightness, setBrightness] = useState(0)
 
   const paramDefs = useMemo(() => ({
-    chaos: { value: chaos, set: setChaos, min: 0, max: 1, step: 0.01 },
+    drift: { value: drift, set: setDrift, min: 0, max: 1, step: 0.01 },
+    jitter: { value: jitter, set: setJitter, min: 0, max: 1, step: 0.01 },
+    wave: { value: wave, set: setWave, min: 0, max: 1, step: 0.01 },
     fontSize: { value: fontSize, set: setFontSize, min: 4, max: 32, step: 1 },
-    charSpread: { value: charSpread, set: setCharSpread, min: -1, max: 1, step: 0.01 },
+    brightness: { value: brightness, set: setBrightness, min: -1, max: 1, step: 0.01 },
     columns: { value: columns, set: setColumns, min: 10, max: 200, step: 1 },
     rows: { value: rows, set: setRows, min: 5, max: 100, step: 1 }
-  }), [chaos, fontSize, charSpread, columns, rows])
+  }), [drift, jitter, wave, fontSize, brightness, columns, rows])
 
   const anim = useAnimation(paramDefs, ['columns', 'rows'])
 
-  const renderParams = { canvasSize: 600, bgColor, fgColor, preprocessing, columns, rows, characterSet, customChars, invertRamp, showBorders, chaos, fontSize, charSpread }
+  const renderParams = { canvasSize: 600, bgColor, fgColor, preprocessing, columns, rows, characterSet, customChars, invertRamp, showBorders, drift, jitter, wave, fontSize, brightness }
 
   const sketchFactory = useCallback(
     (paramsRef) => createASCIISketch(showEffect ? image : null, paramsRef),
@@ -79,9 +83,11 @@ export default function ASCIIPage () {
             />
           </div>
         )}
-        <SliderInput label="Chaos" value={chaos} onChange={setChaos} min={0} max={1} step={0.01} />
+        <SliderInput label="Drift" value={drift} onChange={setDrift} min={0} max={1} step={0.01} />
+        <SliderInput label="Jitter" value={jitter} onChange={setJitter} min={0} max={1} step={0.01} />
+        <SliderInput label="Wave" value={wave} onChange={setWave} min={0} max={1} step={0.01} />
         <SliderInput label="Font Size" value={fontSize} onChange={setFontSize} min={4} max={32} step={1} />
-        <SliderInput label="Char Spread" value={charSpread} onChange={setCharSpread} min={-1} max={1} step={0.01} />
+        <SliderInput label="Brightness" value={brightness} onChange={setBrightness} min={-1} max={1} step={0.01} />
         <Toggle label="Invert Ramp" checked={invertRamp} onChange={setInvertRamp} />
         <Toggle label="Show Borders" checked={showBorders} onChange={setShowBorders} />
         <ColorControls />
