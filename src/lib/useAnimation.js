@@ -24,12 +24,12 @@ function smoothNoise (t, seed) {
  *   setAnimationState: setter
  *   AnimationControlProps: pass directly to <AnimationControls />
  */
-export default function useAnimation (paramDefs) {
+export default function useAnimation (paramDefs, initialExcluded) {
   const [enabled, setEnabled] = useState(false)
   const [speed, setSpeed] = useState(0.5)
   const [randomness, setRandomness] = useState(0.5)
   const [intensity, setIntensity] = useState(0.5)
-  const [excluded, setExcluded] = useState(new Set())
+  const [excluded, setExcluded] = useState(() => new Set(initialExcluded || []))
 
   const defsRef = useRef(paramDefs)
   defsRef.current = paramDefs
