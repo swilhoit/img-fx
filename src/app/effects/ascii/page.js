@@ -26,7 +26,10 @@ export default function ASCIIPage () {
   const [invertRamp, setInvertRamp] = useState(false)
   const [showBorders, setShowBorders] = useState(false)
 
-  const paramDefs = useMemo(() => ({}), [])
+  const paramDefs = useMemo(() => ({
+    columns: { value: columns, set: setColumns, min: 10, max: 200, step: 1 },
+    rows: { value: rows, set: setRows, min: 5, max: 100, step: 1 }
+  }), [columns, rows])
 
   const anim = useAnimation(paramDefs)
 
@@ -37,7 +40,7 @@ export default function ASCIIPage () {
     [image, showEffect]
   )
 
-  const { containerRef, p5Ref } = useP5(sketchFactory, [image, showEffect, columns, rows, preprocessing], renderParams)
+  const { containerRef, p5Ref } = useP5(sketchFactory, [image, showEffect, preprocessing], renderParams)
   const videoExport = useVideoExport(containerRef)
 
   return (

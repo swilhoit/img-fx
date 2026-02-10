@@ -6,14 +6,12 @@ export function createASCIISketch (image, paramsRef) {
 
     p.setup = () => {
       const params = paramsRef.current
-      const cols = params.columns || 80
-      const rows = params.rows || 40
       const charW = 7
       const charH = 14
-      const w = cols * charW
-      const h = rows * charH
-
-      p.createCanvas(w, h)
+      // Create canvas at max dimensions so animation of columns/rows doesn't need re-init
+      const maxCols = 200
+      const maxRows = 100
+      p.createCanvas(maxCols * charW, maxRows * charH)
 
       if (!image) {
         const bg = hexToRgb(params.bgColor)
@@ -21,7 +19,7 @@ export function createASCIISketch (image, paramsRef) {
         return
       }
 
-      const { imageData, width, height } = resizeImageData(image, Math.max(cols, rows))
+      const { imageData, width, height } = resizeImageData(image, Math.max(maxCols, maxRows))
       const pre = applyPreprocessing(imageData.data, width, height, params.preprocessing)
       processed = { data: pre, width, height }
     }
