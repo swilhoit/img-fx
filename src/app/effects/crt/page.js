@@ -12,10 +12,11 @@ import Toggle from '@/components/Toggle/Toggle'
 import SelectInput from '@/components/SelectInput/SelectInput'
 import PreprocessingControls from '@/components/PreprocessingControls'
 import AnimationControls from '@/components/AnimationControls/AnimationControls'
+import ColorControls from '@/components/ColorControls'
 import ExportButton from '@/components/ExportButton/ExportButton'
 
 export default function CRTPage () {
-  const { image, loadImage, canvasSize, setCanvasSize, showEffect, setShowEffect } = useGlobalState()
+  const { image, loadImage, canvasSize, setCanvasSize, showEffect, setShowEffect, bgColor, fgColor } = useGlobalState()
   const [preprocessing, setPreprocessing] = useState({ blur: 0, grain: 0, gamma: 1, blackPoint: 0, whitePoint: 255 })
   const [type, setType] = useState('Monitor')
   const [distortion, setDistortion] = useState(0.1)
@@ -51,8 +52,8 @@ export default function CRTPage () {
 
   const anim = useAnimation(paramDefs)
 
-  const allDeps = [image, showEffect, canvasSize, preprocessing, type, distortion, dotScale, dotPitch, falloff, glowRadius, glowIntensity, bloomMode, bloomThreshold, bloomIntensity, bloomRadius, redOffsetX, redOffsetY, blueOffsetX, blueOffsetY]
-  const params = { canvasSize, preprocessing, type, distortion, dotScale, dotPitch, falloff, glowRadius, glowIntensity, bloomMode, bloomThreshold, bloomIntensity, bloomRadius, redOffsetX, redOffsetY, blueOffsetX, blueOffsetY }
+  const allDeps = [image, showEffect, bgColor, fgColor, canvasSize, preprocessing, type, distortion, dotScale, dotPitch, falloff, glowRadius, glowIntensity, bloomMode, bloomThreshold, bloomIntensity, bloomRadius, redOffsetX, redOffsetY, blueOffsetX, blueOffsetY]
+  const params = { canvasSize, bgColor, fgColor, preprocessing, type, distortion, dotScale, dotPitch, falloff, glowRadius, glowIntensity, bloomMode, bloomThreshold, bloomIntensity, bloomRadius, redOffsetX, redOffsetY, blueOffsetX, blueOffsetY }
 
   const sketch = useCallback(
     (p) => createCRTSketch(showEffect ? image : null, params)(p),
@@ -83,6 +84,7 @@ export default function CRTPage () {
         <SliderInput label="redConvergenceOffsetY" value={redOffsetY} onChange={setRedOffsetY} min={-10} max={10} step={1} />
         <SliderInput label="blueConvergenceOffsetX" value={blueOffsetX} onChange={setBlueOffsetX} min={-10} max={10} step={1} />
         <SliderInput label="blueConvergenceOffsetY" value={blueOffsetY} onChange={setBlueOffsetY} min={-10} max={10} step={1} />
+        <ColorControls />
         <AnimationControls {...anim} />
         <ExportButton onExport={useCallback(() => { if (p5Ref.current) p5Ref.current.saveCanvas('crt', 'png') }, [p5Ref])} />
       </ControlPanel>

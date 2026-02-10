@@ -11,10 +11,11 @@ import SliderInput from '@/components/SliderInput/SliderInput'
 import Toggle from '@/components/Toggle/Toggle'
 import PreprocessingControls from '@/components/PreprocessingControls'
 import AnimationControls from '@/components/AnimationControls/AnimationControls'
+import ColorControls from '@/components/ColorControls'
 import ExportButton from '@/components/ExportButton/ExportButton'
 
 export default function ScatterPage () {
-  const { image, loadImage, canvasSize, setCanvasSize, showEffect, setShowEffect } = useGlobalState()
+  const { image, loadImage, canvasSize, setCanvasSize, showEffect, setShowEffect, bgColor, fgColor } = useGlobalState()
   const [preprocessing, setPreprocessing] = useState({ blur: 0, grain: 0, gamma: 1, blackPoint: 0, whitePoint: 255 })
   const [pointDensity, setPointDensity] = useState(0.004)
   const [minDotSize, setMinDotSize] = useState(4)
@@ -32,8 +33,8 @@ export default function ScatterPage () {
 
   const anim = useAnimation(paramDefs)
 
-  const allDeps = [image, showEffect, canvasSize, preprocessing, pointDensity, minDotSize, maxDotSize, relaxIterations, relaxStrength]
-  const params = { canvasSize, preprocessing, pointDensity, minDotSize, maxDotSize, relaxIterations, relaxStrength }
+  const allDeps = [image, showEffect, bgColor, fgColor, canvasSize, preprocessing, pointDensity, minDotSize, maxDotSize, relaxIterations, relaxStrength]
+  const params = { canvasSize, bgColor, fgColor, preprocessing, pointDensity, minDotSize, maxDotSize, relaxIterations, relaxStrength }
 
   const sketch = useCallback(
     (p) => createScatterSketch(showEffect ? image : null, params)(p),
@@ -54,6 +55,7 @@ export default function ScatterPage () {
         <SliderInput label="Max Dot Size" value={maxDotSize} onChange={setMaxDotSize} min={1} max={50} step={1} />
         <SliderInput label="Relax Iterations" value={relaxIterations} onChange={setRelaxIterations} min={0} max={20} step={1} />
         <SliderInput label="Relax Strength" value={relaxStrength} onChange={setRelaxStrength} min={0} max={1} step={0.01} />
+        <ColorControls />
         <AnimationControls {...anim} />
         <ExportButton onExport={useCallback(() => { if (p5Ref.current) p5Ref.current.saveCanvas('scatter', 'png') }, [p5Ref])} />
       </ControlPanel>

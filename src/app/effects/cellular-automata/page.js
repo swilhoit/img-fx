@@ -12,10 +12,11 @@ import Toggle from '@/components/Toggle/Toggle'
 import SelectInput from '@/components/SelectInput/SelectInput'
 import PreprocessingControls from '@/components/PreprocessingControls'
 import AnimationControls from '@/components/AnimationControls/AnimationControls'
+import ColorControls from '@/components/ColorControls'
 import ExportButton from '@/components/ExportButton/ExportButton'
 
 export default function CellularAutomataPage () {
-  const { image, loadImage, canvasSize, setCanvasSize, showEffect, setShowEffect } = useGlobalState()
+  const { image, loadImage, canvasSize, setCanvasSize, showEffect, setShowEffect, bgColor, fgColor } = useGlobalState()
   const [preprocessing, setPreprocessing] = useState({ blur: 0, grain: 0, gamma: 1, blackPoint: 0, whitePoint: 255 })
   const [threshold, setThreshold] = useState(128)
   const [cellSize, setCellSize] = useState(4)
@@ -38,8 +39,8 @@ export default function CellularAutomataPage () {
 
   const anim = useAnimation(paramDefs)
 
-  const allDeps = [image, showEffect, canvasSize, preprocessing, threshold, cellSize, steps, type, surviveLower, surviveUpper, birthLower, birthUpper]
-  const params = { canvasSize, preprocessing, threshold, cellSize, steps, type, surviveLower, surviveUpper, birthLower, birthUpper }
+  const allDeps = [image, showEffect, bgColor, fgColor, canvasSize, preprocessing, threshold, cellSize, steps, type, surviveLower, surviveUpper, birthLower, birthUpper]
+  const params = { canvasSize, bgColor, fgColor, preprocessing, threshold, cellSize, steps, type, surviveLower, surviveUpper, birthLower, birthUpper }
 
   const sketch = useCallback(
     (p) => createCellularAutomataSketch(showEffect ? image : null, params)(p),
@@ -63,6 +64,7 @@ export default function CellularAutomataPage () {
         <SliderInput label="Survive Upper Bound" value={surviveUpper} onChange={setSurviveUpper} min={0} max={8} step={1} />
         <SliderInput label="Birth Lower Bound" value={birthLower} onChange={setBirthLower} min={0} max={8} step={1} />
         <SliderInput label="Birth Upper Bound" value={birthUpper} onChange={setBirthUpper} min={0} max={8} step={1} />
+        <ColorControls />
         <AnimationControls {...anim} />
         <ExportButton onExport={useCallback(() => { if (p5Ref.current) p5Ref.current.saveCanvas('cellular-automata', 'png') }, [p5Ref])} />
       </ControlPanel>

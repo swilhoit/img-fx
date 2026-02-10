@@ -9,6 +9,8 @@ export function GlobalStateProvider ({ children }) {
   const [imageData, setImageData] = useState(null)
   const [canvasSize, setCanvasSize] = useState(600)
   const [showEffect, setShowEffect] = useState(true)
+  const [bgColor, setBgColor] = useState('#ffffff')
+  const [fgColor, setFgColor] = useState('#000000')
 
   const loadImage = useCallback((file) => {
     if (!file) return
@@ -30,7 +32,9 @@ export function GlobalStateProvider ({ children }) {
     <GlobalStateContext.Provider value={{
       image, imageData, loadImage,
       canvasSize, setCanvasSize,
-      showEffect, setShowEffect
+      showEffect, setShowEffect,
+      bgColor, setBgColor,
+      fgColor, setFgColor
     }}>
       {children}
     </GlobalStateContext.Provider>

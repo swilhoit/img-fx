@@ -12,10 +12,11 @@ import Toggle from '@/components/Toggle/Toggle'
 import SelectInput from '@/components/SelectInput/SelectInput'
 import PreprocessingControls from '@/components/PreprocessingControls'
 import AnimationControls from '@/components/AnimationControls/AnimationControls'
+import ColorControls from '@/components/ColorControls'
 import ExportButton from '@/components/ExportButton/ExportButton'
 
 export default function GradientsPage () {
-  const { image, loadImage, canvasSize, setCanvasSize, showEffect, setShowEffect } = useGlobalState()
+  const { image, loadImage, canvasSize, setCanvasSize, showEffect, setShowEffect, bgColor, fgColor } = useGlobalState()
   const [preprocessing, setPreprocessing] = useState({ blur: 0, grain: 0, gamma: 1, blackPoint: 0, whitePoint: 255 })
   const [threshold, setThreshold] = useState(128)
   const [stepSize, setStepSize] = useState(8)
@@ -28,8 +29,8 @@ export default function GradientsPage () {
 
   const anim = useAnimation(paramDefs)
 
-  const allDeps = [image, showEffect, canvasSize, preprocessing, threshold, stepSize, shapeType]
-  const params = { canvasSize, preprocessing, threshold, stepSize, shapeType }
+  const allDeps = [image, showEffect, bgColor, fgColor, canvasSize, preprocessing, threshold, stepSize, shapeType]
+  const params = { canvasSize, bgColor, fgColor, preprocessing, threshold, stepSize, shapeType }
 
   const sketch = useCallback(
     (p) => createGradientsSketch(showEffect ? image : null, params)(p),
@@ -48,6 +49,7 @@ export default function GradientsPage () {
         <SliderInput label="Threshold" value={threshold} onChange={setThreshold} min={0} max={255} step={1} />
         <SliderInput label="Step Size" value={stepSize} onChange={setStepSize} min={2} max={30} step={1} />
         <SelectInput label="Shape Type" value={shapeType} onChange={setShapeType} options={['rect', 'ellipse']} />
+        <ColorControls />
         <AnimationControls {...anim} />
         <ExportButton onExport={useCallback(() => { if (p5Ref.current) p5Ref.current.saveCanvas('gradients', 'png') }, [p5Ref])} />
       </ControlPanel>

@@ -14,10 +14,11 @@ import ControlGroup from '@/components/ControlGroup/ControlGroup'
 import ColorStop from '@/components/ColorStop/ColorStop'
 import PreprocessingControls from '@/components/PreprocessingControls'
 import AnimationControls from '@/components/AnimationControls/AnimationControls'
+import ColorControls from '@/components/ColorControls'
 import ExportButton from '@/components/ExportButton/ExportButton'
 
 export default function RecolorPage () {
-  const { image, loadImage, canvasSize, setCanvasSize, showEffect, setShowEffect } = useGlobalState()
+  const { image, loadImage, canvasSize, setCanvasSize, showEffect, setShowEffect, bgColor, fgColor } = useGlobalState()
   const [preprocessing, setPreprocessing] = useState({ blur: 0, grain: 0, gamma: 1, blackPoint: 0, whitePoint: 255 })
   const [posterize, setPosterize] = useState(8)
   const [noiseIntensity, setNoiseIntensity] = useState(0)
@@ -41,8 +42,8 @@ export default function RecolorPage () {
 
   const anim = useAnimation(paramDefs)
 
-  const allDeps = [image, showEffect, canvasSize, preprocessing, posterize, noiseIntensity, noiseScale, noiseGamma, gradientRepetitions, gradientMap, stops]
-  const params = { canvasSize, preprocessing, posterize, noiseIntensity, noiseScale, noiseGamma, gradientRepetitions, gradientMap, stops }
+  const allDeps = [image, showEffect, bgColor, fgColor, canvasSize, preprocessing, posterize, noiseIntensity, noiseScale, noiseGamma, gradientRepetitions, gradientMap, stops]
+  const params = { canvasSize, bgColor, fgColor, preprocessing, posterize, noiseIntensity, noiseScale, noiseGamma, gradientRepetitions, gradientMap, stops }
 
   const sketch = useCallback(
     (p) => createRecolorSketch(showEffect ? image : null, params)(p),
@@ -72,6 +73,7 @@ export default function RecolorPage () {
             onRemove={(i) => setStops(prev => prev.filter((_, idx) => idx !== i))}
           />
         </ControlGroup>
+        <ColorControls />
         <AnimationControls {...anim} />
         <ExportButton onExport={useCallback(() => { if (p5Ref.current) p5Ref.current.saveCanvas('recolor', 'png') }, [p5Ref])} />
       </ControlPanel>

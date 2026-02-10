@@ -1,4 +1,4 @@
-import { applyPreprocessing, getGrayscale, resizeImageData } from '../preprocessing'
+import { applyPreprocessing, getGrayscale, resizeImageData, hexToRgb } from '../preprocessing'
 
 export function createStipplingSketch (image, params) {
   return (p) => {
@@ -7,7 +7,8 @@ export function createStipplingSketch (image, params) {
     p.setup = () => {
       if (!image) {
         p.createCanvas(params.canvasSize, params.canvasSize)
-        p.background(255)
+        const bg = hexToRgb(params.bgColor)
+        p.background(bg[0], bg[1], bg[2])
         return
       }
       const { imageData, width, height } = resizeImageData(image, params.canvasSize)
@@ -23,9 +24,11 @@ export function createStipplingSketch (image, params) {
 
 function render (p, img, params) {
   const { threshold = 128, gridType = 'Regular', gridAngle = 0, ySquares = 50, xSquares = 50, minSquareWidth = 1, maxSquareWidth = 10 } = params
+  const bg = hexToRgb(params.bgColor)
+  const fg = hexToRgb(params.fgColor)
 
-  p.background(255)
-  p.fill(0)
+  p.background(bg[0], bg[1], bg[2])
+  p.fill(fg[0], fg[1], fg[2])
   p.noStroke()
 
   const cellW = img.width / xSquares

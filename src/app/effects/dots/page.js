@@ -12,10 +12,11 @@ import Toggle from '@/components/Toggle/Toggle'
 import SelectInput from '@/components/SelectInput/SelectInput'
 import PreprocessingControls from '@/components/PreprocessingControls'
 import AnimationControls from '@/components/AnimationControls/AnimationControls'
+import ColorControls from '@/components/ColorControls'
 import ExportButton from '@/components/ExportButton/ExportButton'
 
 export default function DotsPage () {
-  const { image, loadImage, canvasSize, setCanvasSize, showEffect, setShowEffect } = useGlobalState()
+  const { image, loadImage, canvasSize, setCanvasSize, showEffect, setShowEffect, bgColor, fgColor } = useGlobalState()
   const [preprocessing, setPreprocessing] = useState({ blur: 0, grain: 0, gamma: 1, blackPoint: 0, whitePoint: 255 })
   const [threshold, setThreshold] = useState(128)
   const [gridType, setGridType] = useState('Regular')
@@ -38,8 +39,8 @@ export default function DotsPage () {
 
   const anim = useAnimation(paramDefs)
 
-  const allDeps = [image, showEffect, canvasSize, preprocessing, threshold, gridType, gridAngle, minDotSize, maxDotSize, cornerRadius, stepSize, noise]
-  const params = { canvasSize, preprocessing, threshold, gridType, gridAngle, minDotSize, maxDotSize, cornerRadius, stepSize, noise }
+  const allDeps = [image, showEffect, bgColor, fgColor, canvasSize, preprocessing, threshold, gridType, gridAngle, minDotSize, maxDotSize, cornerRadius, stepSize, noise]
+  const params = { canvasSize, bgColor, fgColor, preprocessing, threshold, gridType, gridAngle, minDotSize, maxDotSize, cornerRadius, stepSize, noise }
 
   const sketch = useCallback(
     (p) => createDotsSketch(showEffect ? image : null, params)(p),
@@ -68,6 +69,7 @@ export default function DotsPage () {
         <SliderInput label="Corner Radius" value={cornerRadius} onChange={setCornerRadius} min={0} max={25} step={1} />
         <SliderInput label="Step Size" value={stepSize} onChange={setStepSize} min={2} max={30} step={1} />
         <SliderInput label="Noise" value={noise} onChange={setNoise} min={0} max={1} step={0.01} />
+        <ColorControls />
         <AnimationControls {...anim} />
         <ExportButton onExport={handleExport} />
       </ControlPanel>

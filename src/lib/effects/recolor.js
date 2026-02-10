@@ -1,11 +1,12 @@
-import { applyPreprocessing, getGrayscale, resizeImageData } from '../preprocessing'
+import { applyPreprocessing, getGrayscale, resizeImageData, hexToRgb } from '../preprocessing'
 
 export function createRecolorSketch (image, params) {
   return (p) => {
     p.setup = () => {
       if (!image) {
         p.createCanvas(params.canvasSize, params.canvasSize)
-        p.background(255)
+        const bg = hexToRgb(params.bgColor)
+        p.background(bg[0], bg[1], bg[2])
         return
       }
       const { imageData, width, height } = resizeImageData(image, params.canvasSize)
@@ -108,7 +109,4 @@ function sampleGradient (stops, t) {
   return hexToRgb(stops[stops.length - 1].color)
 }
 
-function hexToRgb (hex) {
-  const h = hex.replace('#', '')
-  return [parseInt(h.substring(0, 2), 16), parseInt(h.substring(2, 4), 16), parseInt(h.substring(4, 6), 16)]
-}
+

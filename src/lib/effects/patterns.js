@@ -1,4 +1,4 @@
-import { applyPreprocessing, getGrayscale, resizeImageData } from '../preprocessing'
+import { applyPreprocessing, getGrayscale, resizeImageData, hexToRgb } from '../preprocessing'
 
 export function createPatternsSketch (image, patternImages, params) {
   return (p) => {
@@ -13,7 +13,8 @@ export function createPatternsSketch (image, patternImages, params) {
     p.setup = () => {
       if (!image) {
         p.createCanvas(params.canvasSize, params.canvasSize)
-        p.background(255)
+        const bg = hexToRgb(params.bgColor)
+        p.background(bg[0], bg[1], bg[2])
         return
       }
       const { imageData, width, height } = resizeImageData(image, params.canvasSize)
@@ -28,8 +29,10 @@ export function createPatternsSketch (image, patternImages, params) {
 
 function render (p, data, width, height, params, patterns) {
   const { threshold = 128, gridDensity = 20 } = params
+  const bg = hexToRgb(params.bgColor)
+  const fg = hexToRgb(params.fgColor)
 
-  p.background(255)
+  p.background(bg[0], bg[1], bg[2])
 
   const cellSize = Math.max(4, Math.round(width / gridDensity))
   const cols = Math.ceil(width / cellSize)
@@ -51,7 +54,7 @@ function render (p, data, width, height, params, patterns) {
           p.image(pat, cx, cy, cellSize, cellSize)
         } else {
           const t = 1 - gray / threshold
-          p.fill(0, t * 255)
+          p.fill(fg[0], fg[1], fg[2], t * 255)
           p.noStroke()
           p.rect(cx, cy, cellSize, cellSize)
         }

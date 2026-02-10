@@ -11,10 +11,11 @@ import SliderInput from '@/components/SliderInput/SliderInput'
 import Toggle from '@/components/Toggle/Toggle'
 import PreprocessingControls from '@/components/PreprocessingControls'
 import AnimationControls from '@/components/AnimationControls/AnimationControls'
+import ColorControls from '@/components/ColorControls'
 import ExportButton from '@/components/ExportButton/ExportButton'
 
 export default function BevelPage () {
-  const { image, loadImage, canvasSize, setCanvasSize, showEffect, setShowEffect } = useGlobalState()
+  const { image, loadImage, canvasSize, setCanvasSize, showEffect, setShowEffect, bgColor, fgColor } = useGlobalState()
   const [preprocessing, setPreprocessing] = useState({ blur: 0, grain: 0, gamma: 1, blackPoint: 0, whitePoint: 255 })
   const [depth, setDepth] = useState(3)
   const [lightAngle, setLightAngle] = useState(135)
@@ -28,8 +29,8 @@ export default function BevelPage () {
 
   const anim = useAnimation(paramDefs)
 
-  const allDeps = [image, showEffect, canvasSize, preprocessing, depth, lightAngle, effectThreshold]
-  const params = { canvasSize, preprocessing, depth, lightAngle, effectThreshold }
+  const allDeps = [image, showEffect, bgColor, fgColor, canvasSize, preprocessing, depth, lightAngle, effectThreshold]
+  const params = { canvasSize, bgColor, fgColor, preprocessing, depth, lightAngle, effectThreshold }
 
   const sketch = useCallback(
     (p) => createBevelSketch(showEffect ? image : null, params)(p),
@@ -48,6 +49,7 @@ export default function BevelPage () {
         <SliderInput label="Depth" value={depth} onChange={setDepth} min={0.1} max={10} step={0.1} />
         <SliderInput label="Light Angle" value={lightAngle} onChange={setLightAngle} min={0} max={360} step={1} />
         <SliderInput label="Effect Threshold" value={effectThreshold} onChange={setEffectThreshold} min={0} max={255} step={1} />
+        <ColorControls />
         <AnimationControls {...anim} />
         <ExportButton onExport={useCallback(() => { if (p5Ref.current) p5Ref.current.saveCanvas('bevel', 'png') }, [p5Ref])} />
       </ControlPanel>

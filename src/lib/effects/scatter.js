@@ -1,11 +1,12 @@
-import { applyPreprocessing, getGrayscale, resizeImageData } from '../preprocessing'
+import { applyPreprocessing, getGrayscale, resizeImageData, hexToRgb } from '../preprocessing'
 
 export function createScatterSketch (image, params) {
   return (p) => {
     p.setup = () => {
       if (!image) {
         p.createCanvas(params.canvasSize, params.canvasSize)
-        p.background(255)
+        const bg = hexToRgb(params.bgColor)
+        p.background(bg[0], bg[1], bg[2])
         return
       }
       const { imageData, width, height } = resizeImageData(image, params.canvasSize)
@@ -20,9 +21,11 @@ export function createScatterSketch (image, params) {
 
 function render (p, data, width, height, params) {
   const { pointDensity = 0.004, minDotSize = 4, maxDotSize = 14, relaxIterations = 1, relaxStrength = 0.16 } = params
+  const bg = hexToRgb(params.bgColor)
+  const fg = hexToRgb(params.fgColor)
 
-  p.background(255)
-  p.fill(0)
+  p.background(bg[0], bg[1], bg[2])
+  p.fill(fg[0], fg[1], fg[2])
   p.noStroke()
 
   const numPoints = Math.floor(width * height * pointDensity)
@@ -41,7 +44,6 @@ function render (p, data, width, height, params) {
     }
   }
 
-  // Lloyd relaxation
   for (let iter = 0; iter < relaxIterations; iter++) {
     for (let i = 0; i < points.length; i++) {
       let fx = 0, fy = 0, count = 0

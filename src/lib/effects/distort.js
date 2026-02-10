@@ -1,11 +1,12 @@
-import { applyPreprocessing, resizeImageData } from '../preprocessing'
+import { applyPreprocessing, resizeImageData, hexToRgb } from '../preprocessing'
 
 export function createDistortSketch (image, distortionMap, params) {
   return (p) => {
     p.setup = () => {
       if (!image) {
         p.createCanvas(params.canvasSize, params.canvasSize)
-        p.background(255)
+        const bg = hexToRgb(params.bgColor)
+        p.background(bg[0], bg[1], bg[2])
         return
       }
       const { imageData, width, height } = resizeImageData(image, params.canvasSize)
@@ -28,6 +29,7 @@ export function createDistortSketch (image, distortionMap, params) {
 
 function render (p, data, width, height, params, mapData) {
   const { threshold = 128, xShift = 20, yShift = 20 } = params
+  const bg = hexToRgb(params.bgColor)
 
   p.loadPixels()
 
@@ -49,9 +51,17 @@ function render (p, data, width, height, params, mapData) {
       sy = Math.min(height - 1, Math.max(0, sy))
 
       const srcIdx = (sy * width + sx) * 4
-      p.pixels[idx] = data[srcIdx]
-      p.pixels[idx + 1] = data[srcIdx + 1]
-      p.pixels[idx + 2] = data[srcIdx + 2]
+
+      // Out-of-bounds pixels get bg color
+      if (sx < 0 || sx >= width || sy < 0 || sy >= height) {
+        p.pixels[idx] = bg[0]
+        p.pixels[idx + 1] = bg[1]
+        p.pixels[idx + 2] = bg[2]
+      } else {
+        p.pixels[idx] = data[srcIdx]
+        p.pixels[idx + 1] = data[srcIdx + 1]
+        p.pixels[idx + 2] = data[srcIdx + 2]
+      }
       p.pixels[idx + 3] = 255
     }
   }

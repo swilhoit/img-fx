@@ -12,10 +12,11 @@ import Toggle from '@/components/Toggle/Toggle'
 import SelectInput from '@/components/SelectInput/SelectInput'
 import PreprocessingControls from '@/components/PreprocessingControls'
 import AnimationControls from '@/components/AnimationControls/AnimationControls'
+import ColorControls from '@/components/ColorControls'
 import ExportButton from '@/components/ExportButton/ExportButton'
 
 export default function ASCIIPage () {
-  const { image, loadImage, showEffect, setShowEffect } = useGlobalState()
+  const { image, loadImage, showEffect, setShowEffect, bgColor, fgColor } = useGlobalState()
   const [preprocessing, setPreprocessing] = useState({ blur: 0, grain: 0, gamma: 1, blackPoint: 0, whitePoint: 255 })
   const [columns, setColumns] = useState(80)
   const [rows, setRows] = useState(40)
@@ -29,8 +30,8 @@ export default function ASCIIPage () {
 
   const anim = useAnimation(paramDefs)
 
-  const allDeps = [image, showEffect, preprocessing, columns, rows, characterSet, showBorders]
-  const params = { canvasSize: 600, preprocessing, columns, rows, characterSet, showBorders }
+  const allDeps = [image, showEffect, bgColor, fgColor, preprocessing, columns, rows, characterSet, showBorders]
+  const params = { canvasSize: 600, bgColor, fgColor, preprocessing, columns, rows, characterSet, showBorders }
 
   const sketch = useCallback(
     (p) => createASCIISketch(showEffect ? image : null, params)(p),
@@ -48,6 +49,7 @@ export default function ASCIIPage () {
         <SliderInput label="Rows" value={rows} onChange={setRows} min={5} max={100} step={1} />
         <SelectInput label="Character Set" value={characterSet} onChange={setCharacterSet} options={['standard', 'blocks', 'simple', 'detailed']} />
         <Toggle label="Show Borders" checked={showBorders} onChange={setShowBorders} />
+        <ColorControls />
         <AnimationControls {...anim} />
         <ExportButton onExport={useCallback(() => { if (p5Ref.current) p5Ref.current.saveCanvas('ascii', 'png') }, [p5Ref])} />
       </ControlPanel>

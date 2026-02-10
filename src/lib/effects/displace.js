@@ -1,11 +1,12 @@
-import { applyPreprocessing, getGrayscale, resizeImageData } from '../preprocessing'
+import { applyPreprocessing, getGrayscale, resizeImageData, hexToRgb } from '../preprocessing'
 
 export function createDisplaceSketch (image, params) {
   return (p) => {
     p.setup = () => {
       if (!image) {
         p.createCanvas(params.canvasSize, params.canvasSize)
-        p.background(255)
+        const bg = hexToRgb(params.bgColor)
+        p.background(bg[0], bg[1], bg[2])
         return
       }
       const { imageData, width, height } = resizeImageData(image, params.canvasSize)
@@ -20,9 +21,11 @@ export function createDisplaceSketch (image, params) {
 
 function render (p, data, width, height, params) {
   const { stepSize = 6, displacement = 10, dotSize = 4 } = params
+  const bg = hexToRgb(params.bgColor)
+  const fg = hexToRgb(params.fgColor)
 
-  p.background(255)
-  p.fill(0)
+  p.background(bg[0], bg[1], bg[2])
+  p.fill(fg[0], fg[1], fg[2])
   p.noStroke()
 
   const cols = Math.ceil(width / stepSize)

@@ -11,10 +11,11 @@ import SliderInput from '@/components/SliderInput/SliderInput'
 import Toggle from '@/components/Toggle/Toggle'
 import PreprocessingControls from '@/components/PreprocessingControls'
 import AnimationControls from '@/components/AnimationControls/AnimationControls'
+import ColorControls from '@/components/ColorControls'
 import ExportButton from '@/components/ExportButton/ExportButton'
 
 export default function DistortPage () {
-  const { image, loadImage, canvasSize, setCanvasSize, showEffect, setShowEffect } = useGlobalState()
+  const { image, loadImage, canvasSize, setCanvasSize, showEffect, setShowEffect, bgColor, fgColor } = useGlobalState()
   const [preprocessing, setPreprocessing] = useState({ blur: 0, grain: 0, gamma: 1, blackPoint: 0, whitePoint: 255 })
   const [distortionMap, setDistortionMap] = useState(null)
   const [threshold, setThreshold] = useState(128)
@@ -36,8 +37,8 @@ export default function DistortPage () {
 
   const anim = useAnimation(paramDefs)
 
-  const allDeps = [image, showEffect, canvasSize, preprocessing, distortionMap, threshold, xShift, yShift]
-  const params = { canvasSize, preprocessing, threshold, xShift, yShift }
+  const allDeps = [image, showEffect, bgColor, fgColor, canvasSize, preprocessing, distortionMap, threshold, xShift, yShift]
+  const params = { canvasSize, bgColor, fgColor, preprocessing, threshold, xShift, yShift }
 
   const sketch = useCallback(
     (p) => createDistortSketch(showEffect ? image : null, distortionMap, params)(p),
@@ -57,6 +58,7 @@ export default function DistortPage () {
         <SliderInput label="Threshold" value={threshold} onChange={setThreshold} min={0} max={255} step={1} />
         <SliderInput label="X Shift Strength" value={xShift} onChange={setXShift} min={0} max={100} step={1} />
         <SliderInput label="Y Shift Strength" value={yShift} onChange={setYShift} min={0} max={100} step={1} />
+        <ColorControls />
         <AnimationControls {...anim} />
         <ExportButton onExport={useCallback(() => { if (p5Ref.current) p5Ref.current.saveCanvas('distort', 'png') }, [p5Ref])} />
       </ControlPanel>

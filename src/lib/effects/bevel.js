@@ -1,11 +1,12 @@
-import { applyPreprocessing, getGrayscale, resizeImageData } from '../preprocessing'
+import { applyPreprocessing, getGrayscale, resizeImageData, hexToRgb } from '../preprocessing'
 
 export function createBevelSketch (image, params) {
   return (p) => {
     p.setup = () => {
       if (!image) {
         p.createCanvas(params.canvasSize, params.canvasSize)
-        p.background(200)
+        const bg = hexToRgb(params.bgColor)
+        p.background(bg[0], bg[1], bg[2])
         return
       }
       const { imageData, width, height } = resizeImageData(image, params.canvasSize)
@@ -20,6 +21,8 @@ export function createBevelSketch (image, params) {
 
 function render (p, data, width, height, params) {
   const { depth = 3, lightAngle = 135, effectThreshold = 128 } = params
+  const bg = hexToRgb(params.bgColor)
+  const fg = hexToRgb(params.fgColor)
 
   const gray = new Float32Array(width * height)
   for (let i = 0; i < width * height; i++) {
@@ -38,7 +41,9 @@ function render (p, data, width, height, params) {
       const c = gray[y * width + x]
 
       if (c > effectThreshold) {
-        p.pixels[idx] = p.pixels[idx + 1] = p.pixels[idx + 2] = 200
+        p.pixels[idx] = bg[0]
+        p.pixels[idx + 1] = bg[1]
+        p.pixels[idx + 2] = bg[2]
         p.pixels[idx + 3] = 255
         continue
       }
@@ -47,11 +52,11 @@ function render (p, data, width, height, params) {
       const dy = (gray[(y + 1) * width + x] - gray[(y - 1) * width + x]) * depth
 
       const dot = (dx * lx + dy * ly) / (Math.sqrt(dx * dx + dy * dy + 1) || 1)
-      const light = Math.min(255, Math.max(0, 128 + dot * 127))
+      const t = (dot + 1) / 2 // 0..1
 
-      p.pixels[idx] = light
-      p.pixels[idx + 1] = light
-      p.pixels[idx + 2] = light
+      p.pixels[idx] = Math.round(bg[0] + (fg[0] - bg[0]) * t)
+      p.pixels[idx + 1] = Math.round(bg[1] + (fg[1] - bg[1]) * t)
+      p.pixels[idx + 2] = Math.round(bg[2] + (fg[2] - bg[2]) * t)
       p.pixels[idx + 3] = 255
     }
   }

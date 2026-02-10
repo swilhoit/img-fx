@@ -12,10 +12,11 @@ import Toggle from '@/components/Toggle/Toggle'
 import SelectInput from '@/components/SelectInput/SelectInput'
 import PreprocessingControls from '@/components/PreprocessingControls'
 import AnimationControls from '@/components/AnimationControls/AnimationControls'
+import ColorControls from '@/components/ColorControls'
 import ExportButton from '@/components/ExportButton/ExportButton'
 
 export default function StipplingPage () {
-  const { image, loadImage, canvasSize, setCanvasSize, showEffect, setShowEffect } = useGlobalState()
+  const { image, loadImage, canvasSize, setCanvasSize, showEffect, setShowEffect, bgColor, fgColor } = useGlobalState()
   const [preprocessing, setPreprocessing] = useState({ blur: 0, grain: 0, gamma: 1, blackPoint: 0, whitePoint: 255 })
   const [threshold, setThreshold] = useState(128)
   const [gridType, setGridType] = useState('Regular')
@@ -36,14 +37,14 @@ export default function StipplingPage () {
 
   const anim = useAnimation(paramDefs)
 
-  const params = { canvasSize, preprocessing, threshold, gridType, gridAngle, ySquares, xSquares, minSquareWidth, maxSquareWidth }
+  const params = { canvasSize, bgColor, fgColor, preprocessing, threshold, gridType, gridAngle, ySquares, xSquares, minSquareWidth, maxSquareWidth }
 
   const sketch = useCallback(
     (p) => createStipplingSketch(showEffect ? image : null, params)(p),
-    [image, showEffect, canvasSize, preprocessing, threshold, gridType, gridAngle, ySquares, xSquares, minSquareWidth, maxSquareWidth]
+    [image, showEffect, bgColor, fgColor, canvasSize, preprocessing, threshold, gridType, gridAngle, ySquares, xSquares, minSquareWidth, maxSquareWidth]
   )
 
-  const { containerRef, p5Ref } = useP5(sketch, [image, showEffect, canvasSize, preprocessing, threshold, gridType, gridAngle, ySquares, xSquares, minSquareWidth, maxSquareWidth])
+  const { containerRef, p5Ref } = useP5(sketch, [image, showEffect, bgColor, fgColor, canvasSize, preprocessing, threshold, gridType, gridAngle, ySquares, xSquares, minSquareWidth, maxSquareWidth])
 
   const handleExport = useCallback(() => {
     if (p5Ref.current) p5Ref.current.saveCanvas('stippling', 'png')
@@ -64,6 +65,7 @@ export default function StipplingPage () {
         <SliderInput label="X Squares" value={xSquares} onChange={setXSquares} min={5} max={200} step={1} />
         <SliderInput label="Min Square Width" value={minSquareWidth} onChange={setMinSquareWidth} min={1} max={20} step={1} />
         <SliderInput label="Max Square Width" value={maxSquareWidth} onChange={setMaxSquareWidth} min={1} max={30} step={1} />
+        <ColorControls />
         <AnimationControls {...anim} />
         <ExportButton onExport={handleExport} />
       </ControlPanel>

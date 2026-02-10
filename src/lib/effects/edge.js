@@ -1,11 +1,12 @@
-import { applyPreprocessing, getGrayscale, resizeImageData } from '../preprocessing'
+import { applyPreprocessing, getGrayscale, resizeImageData, hexToRgb } from '../preprocessing'
 
 export function createEdgeSketch (image, params) {
   return (p) => {
     p.setup = () => {
       if (!image) {
         p.createCanvas(params.canvasSize, params.canvasSize)
-        p.background(255)
+        const bg = hexToRgb(params.bgColor)
+        p.background(bg[0], bg[1], bg[2])
         return
       }
       const { imageData, width, height } = resizeImageData(image, params.canvasSize)
@@ -20,13 +21,14 @@ export function createEdgeSketch (image, params) {
 
 function render (p, data, width, height, params) {
   const { threshold = 128, minDotSize = 2, maxDotSize = 10, cornerRadius = 0, stepSize = 4 } = params
+  const bg = hexToRgb(params.bgColor)
+  const fg = hexToRgb(params.fgColor)
 
   const gray = new Float32Array(width * height)
   for (let i = 0; i < width * height; i++) {
     gray[i] = getGrayscale(data[i * 4], data[i * 4 + 1], data[i * 4 + 2])
   }
 
-  // Sobel edge detection
   const edges = new Float32Array(width * height)
   for (let y = 1; y < height - 1; y++) {
     for (let x = 1; x < width - 1; x++) {
@@ -41,8 +43,8 @@ function render (p, data, width, height, params) {
     }
   }
 
-  p.background(255)
-  p.fill(0)
+  p.background(bg[0], bg[1], bg[2])
+  p.fill(fg[0], fg[1], fg[2])
   p.noStroke()
 
   const cols = Math.ceil(width / stepSize)

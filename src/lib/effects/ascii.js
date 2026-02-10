@@ -1,4 +1,4 @@
-import { applyPreprocessing, getGrayscale, resizeImageData } from '../preprocessing'
+import { applyPreprocessing, getGrayscale, resizeImageData, hexToRgb } from '../preprocessing'
 
 export function createASCIISketch (image, params) {
   return (p) => {
@@ -13,7 +13,8 @@ export function createASCIISketch (image, params) {
       p.createCanvas(w, h)
 
       if (!image) {
-        p.background(0)
+        const bg = hexToRgb(params.bgColor)
+        p.background(bg[0], bg[1], bg[2])
         return
       }
 
@@ -36,9 +37,11 @@ const CHAR_RAMPS = {
 function render (p, data, imgW, imgH, params, cols, rows, charW, charH) {
   const { characterSet = 'standard', showBorders = false } = params
   const ramp = CHAR_RAMPS[characterSet] || CHAR_RAMPS.standard
+  const bg = hexToRgb(params.bgColor)
+  const fg = hexToRgb(params.fgColor)
 
-  p.background(0)
-  p.fill(0, 255, 0)
+  p.background(bg[0], bg[1], bg[2])
+  p.fill(fg[0], fg[1], fg[2])
   p.textFont('monospace')
   p.textSize(12)
   p.textAlign(p.LEFT, p.TOP)
@@ -60,7 +63,7 @@ function render (p, data, imgW, imgH, params, cols, rows, charW, charH) {
   }
 
   if (showBorders) {
-    p.stroke(0, 100, 0)
+    p.stroke(fg[0], fg[1], fg[2], 80)
     p.noFill()
     for (let r = 0; r <= rows; r++) {
       p.line(0, r * charH, cols * charW, r * charH)

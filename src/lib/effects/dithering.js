@@ -1,11 +1,12 @@
-import { applyPreprocessing, getGrayscale, resizeImageData } from '../preprocessing'
+import { applyPreprocessing, getGrayscale, resizeImageData, hexToRgb } from '../preprocessing'
 
 export function createDitheringSketch (image, params) {
   return (p) => {
     p.setup = () => {
       if (!image) {
         p.createCanvas(params.canvasSize, params.canvasSize)
-        p.background(255)
+        const bg = hexToRgb(params.bgColor)
+        p.background(bg[0], bg[1], bg[2])
         return
       }
       const { imageData, width, height } = resizeImageData(image, params.canvasSize)
@@ -27,6 +28,9 @@ const BAYER_4 = [
 
 function render (p, data, width, height, params) {
   const { pattern = 'F-S', pixelSize = 1, colorMode = 'BW', threshold = 128 } = params
+  const bg = hexToRgb(params.bgColor)
+  const fg = hexToRgb(params.fgColor)
+
   const gray = new Float32Array(width * height)
 
   for (let i = 0; i < width * height; i++) {
@@ -46,20 +50,29 @@ function render (p, data, width, height, params) {
 
   for (let y = 0; y < height; y += ps) {
     for (let x = 0; x < width; x += ps) {
-      const val = gray[y * width + x] > 127 ? 255 : 0
+      const isLight = gray[y * width + x] > 127
 
       for (let dy = 0; dy < ps && y + dy < height; dy++) {
         for (let dx = 0; dx < ps && x + dx < width; dx++) {
           const idx = ((y + dy) * width + (x + dx)) * 4
           if (colorMode === 'BW') {
-            p.pixels[idx] = val
-            p.pixels[idx + 1] = val
-            p.pixels[idx + 2] = val
+            const c = isLight ? fg : bg
+            // Invert logic: light pixels get bg color, dark get fg
+            const color = isLight ? bg : fg
+            p.pixels[idx] = color[0]
+            p.pixels[idx + 1] = color[1]
+            p.pixels[idx + 2] = color[2]
           } else {
             const oi = ((y + dy) * width + (x + dx)) * 4
-            p.pixels[idx] = val > 127 ? data[oi] : 0
-            p.pixels[idx + 1] = val > 127 ? data[oi + 1] : 0
-            p.pixels[idx + 2] = val > 127 ? data[oi + 2] : 0
+            if (isLight) {
+              p.pixels[idx] = data[oi]
+              p.pixels[idx + 1] = data[oi + 1]
+              p.pixels[idx + 2] = data[oi + 2]
+            } else {
+              p.pixels[idx] = bg[0]
+              p.pixels[idx + 1] = bg[1]
+              p.pixels[idx + 2] = bg[2]
+            }
           }
           p.pixels[idx + 3] = 255
         }

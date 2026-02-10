@@ -11,10 +11,11 @@ import SliderInput from '@/components/SliderInput/SliderInput'
 import Toggle from '@/components/Toggle/Toggle'
 import PreprocessingControls from '@/components/PreprocessingControls'
 import AnimationControls from '@/components/AnimationControls/AnimationControls'
+import ColorControls from '@/components/ColorControls'
 import ExportButton from '@/components/ExportButton/ExportButton'
 
 export default function DisplacePage () {
-  const { image, loadImage, canvasSize, setCanvasSize, showEffect, setShowEffect } = useGlobalState()
+  const { image, loadImage, canvasSize, setCanvasSize, showEffect, setShowEffect, bgColor, fgColor } = useGlobalState()
   const [preprocessing, setPreprocessing] = useState({ blur: 0, grain: 0, gamma: 1, blackPoint: 0, whitePoint: 255 })
   const [stepSize, setStepSize] = useState(6)
   const [displacement, setDisplacement] = useState(10)
@@ -28,8 +29,8 @@ export default function DisplacePage () {
 
   const anim = useAnimation(paramDefs)
 
-  const allDeps = [image, showEffect, canvasSize, preprocessing, stepSize, displacement, dotSize]
-  const params = { canvasSize, preprocessing, stepSize, displacement, dotSize }
+  const allDeps = [image, showEffect, bgColor, fgColor, canvasSize, preprocessing, stepSize, displacement, dotSize]
+  const params = { canvasSize, bgColor, fgColor, preprocessing, stepSize, displacement, dotSize }
 
   const sketch = useCallback(
     (p) => createDisplaceSketch(showEffect ? image : null, params)(p),
@@ -48,6 +49,7 @@ export default function DisplacePage () {
         <SliderInput label="Step Size" value={stepSize} onChange={setStepSize} min={2} max={20} step={1} />
         <SliderInput label="Displacement" value={displacement} onChange={setDisplacement} min={0} max={50} step={1} />
         <SliderInput label="Dot Size" value={dotSize} onChange={setDotSize} min={1} max={20} step={1} />
+        <ColorControls />
         <AnimationControls {...anim} />
         <ExportButton onExport={useCallback(() => { if (p5Ref.current) p5Ref.current.saveCanvas('displace', 'png') }, [p5Ref])} />
       </ControlPanel>

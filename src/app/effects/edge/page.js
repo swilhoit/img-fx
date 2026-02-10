@@ -11,10 +11,11 @@ import SliderInput from '@/components/SliderInput/SliderInput'
 import Toggle from '@/components/Toggle/Toggle'
 import PreprocessingControls from '@/components/PreprocessingControls'
 import AnimationControls from '@/components/AnimationControls/AnimationControls'
+import ColorControls from '@/components/ColorControls'
 import ExportButton from '@/components/ExportButton/ExportButton'
 
 export default function EdgePage () {
-  const { image, loadImage, canvasSize, setCanvasSize, showEffect, setShowEffect } = useGlobalState()
+  const { image, loadImage, canvasSize, setCanvasSize, showEffect, setShowEffect, bgColor, fgColor } = useGlobalState()
   const [preprocessing, setPreprocessing] = useState({ blur: 0, grain: 0, gamma: 1, blackPoint: 0, whitePoint: 255 })
   const [threshold, setThreshold] = useState(128)
   const [minDotSize, setMinDotSize] = useState(2)
@@ -32,8 +33,8 @@ export default function EdgePage () {
 
   const anim = useAnimation(paramDefs)
 
-  const allDeps = [image, showEffect, canvasSize, preprocessing, threshold, minDotSize, maxDotSize, cornerRadius, stepSize]
-  const params = { canvasSize, preprocessing, threshold, minDotSize, maxDotSize, cornerRadius, stepSize }
+  const allDeps = [image, showEffect, bgColor, fgColor, canvasSize, preprocessing, threshold, minDotSize, maxDotSize, cornerRadius, stepSize]
+  const params = { canvasSize, bgColor, fgColor, preprocessing, threshold, minDotSize, maxDotSize, cornerRadius, stepSize }
 
   const sketch = useCallback(
     (p) => createEdgeSketch(showEffect ? image : null, params)(p),
@@ -54,6 +55,7 @@ export default function EdgePage () {
         <SliderInput label="Max Dot Size" value={maxDotSize} onChange={setMaxDotSize} min={1} max={30} step={1} />
         <SliderInput label="Corner Radius" value={cornerRadius} onChange={setCornerRadius} min={0} max={15} step={1} />
         <SliderInput label="Step Size" value={stepSize} onChange={setStepSize} min={2} max={20} step={1} />
+        <ColorControls />
         <AnimationControls {...anim} />
         <ExportButton onExport={useCallback(() => { if (p5Ref.current) p5Ref.current.saveCanvas('edge', 'png') }, [p5Ref])} />
       </ControlPanel>

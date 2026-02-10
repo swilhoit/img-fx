@@ -12,10 +12,11 @@ import Toggle from '@/components/Toggle/Toggle'
 import SelectInput from '@/components/SelectInput/SelectInput'
 import PreprocessingControls from '@/components/PreprocessingControls'
 import AnimationControls from '@/components/AnimationControls/AnimationControls'
+import ColorControls from '@/components/ColorControls'
 import ExportButton from '@/components/ExportButton/ExportButton'
 
 export default function DitheringPage () {
-  const { image, loadImage, canvasSize, setCanvasSize, showEffect, setShowEffect } = useGlobalState()
+  const { image, loadImage, canvasSize, setCanvasSize, showEffect, setShowEffect, bgColor, fgColor } = useGlobalState()
   const [preprocessing, setPreprocessing] = useState({ blur: 0, grain: 0, gamma: 1, blackPoint: 0, whitePoint: 255 })
   const [pattern, setPattern] = useState('F-S')
   const [pixelSize, setPixelSize] = useState(1)
@@ -29,8 +30,8 @@ export default function DitheringPage () {
 
   const anim = useAnimation(paramDefs)
 
-  const allDeps = [image, showEffect, canvasSize, preprocessing, pattern, pixelSize, colorMode, threshold]
-  const params = { canvasSize, preprocessing, pattern, pixelSize, colorMode, threshold }
+  const allDeps = [image, showEffect, bgColor, fgColor, canvasSize, preprocessing, pattern, pixelSize, colorMode, threshold]
+  const params = { canvasSize, bgColor, fgColor, preprocessing, pattern, pixelSize, colorMode, threshold }
 
   const sketch = useCallback(
     (p) => createDitheringSketch(showEffect ? image : null, params)(p),
@@ -55,6 +56,7 @@ export default function DitheringPage () {
         <SliderInput label="Pixel Size" value={pixelSize} onChange={setPixelSize} min={1} max={10} step={1} />
         <SelectInput label="Color Mode" value={colorMode} onChange={setColorMode} options={['BW', 'Color']} />
         <SliderInput label="Threshold" value={threshold} onChange={setThreshold} min={0} max={255} step={1} />
+        <ColorControls />
         <AnimationControls {...anim} />
         <ExportButton onExport={handleExport} />
       </ControlPanel>

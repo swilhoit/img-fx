@@ -1,11 +1,12 @@
-import { applyPreprocessing, resizeImageData } from '../preprocessing'
+import { applyPreprocessing, resizeImageData, hexToRgb } from '../preprocessing'
 
 export function createCRTSketch (image, params) {
   return (p) => {
     p.setup = () => {
       if (!image) {
         p.createCanvas(params.canvasSize, params.canvasSize)
-        p.background(20)
+        const bg = hexToRgb(params.bgColor)
+        p.background(bg[0], bg[1], bg[2])
         return
       }
       const { imageData, width, height } = resizeImageData(image, params.canvasSize)
