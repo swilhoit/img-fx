@@ -28,23 +28,31 @@ export default function ExportButton ({ onExport, videoExport, animationEnabled 
 
       {animationEnabled && videoExport && (
         <div className={styles.video}>
-          {videoExport.recording ? (
+          {videoExport.exporting ? (
             <>
               <div className={styles.progress}>
                 <div className={styles.bar} style={{ width: `${videoExport.progress * 100}%` }} />
               </div>
-              <button className={styles.stopBtn} onClick={videoExport.stop}>
-                ■ Stop recording
+              <div className={styles.progressLabel}>
+                Generating video... {Math.round(videoExport.progress * 100)}%
+              </div>
+              <button className={styles.cancelBtn} onClick={videoExport.cancel}>
+                Cancel
               </button>
             </>
           ) : (
-            <div className={styles.btnRow}>
-              <button className={styles.recordBtn} onClick={() => videoExport.record(5)}>
-                Record 5s .mp4
+            <div className={styles.exportRow}>
+              <button className={styles.exportBtn} onClick={videoExport.exportVideo}>
+                Export video
               </button>
-              <button className={styles.recordBtn} onClick={() => videoExport.record(10)}>
-                Record 10s .mp4
-              </button>
+              <select
+                className={styles.durationSelect}
+                value={videoExport.duration}
+                onChange={(e) => videoExport.setDuration(Number(e.target.value))}
+              >
+                <option value={5}>5s</option>
+                <option value={10}>10s</option>
+              </select>
             </div>
           )}
         </div>

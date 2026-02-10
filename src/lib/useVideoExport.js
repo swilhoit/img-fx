@@ -3,21 +3,23 @@
 import { useState, useRef, useCallback } from 'react'
 
 export default function useVideoExport (containerRef) {
-  const [recording, setRecording] = useState(false)
+  const [exporting, setExporting] = useState(false)
   const [progress, setProgress] = useState(0)
+  const [duration, setDuration] = useState(5)
 
   const abortRef = useRef(false)
 
-  const record = useCallback(async (durationSec) => {
+  const exportVideo = useCallback(async () => {
     const canvas = containerRef.current?.querySelector('canvas')
-    if (!canvas || recording) return
+    if (!canvas || exporting) return
 
     abortRef.current = false
-    setRecording(true)
+    setExporting(true)
     setProgress(0)
 
     const fps = 30
-    const totalFrames = durationSec * fps
+    const frameDurationUs = Math.round(1_000_000 / fps)
+    const totalFrames = duration * fps
     const width = canvas.width
     const height = canvas.height
 
@@ -51,11 +53,12 @@ export default function useVideoExport (containerRef) {
       for (let i = 0; i < totalFrames; i++) {
         if (abortRef.current) break
 
-        // Wait for the next animation frame so the canvas updates
         await new Promise(r => requestAnimationFrame(r))
 
+        const timestamp = i * frameDurationUs
         const frame = new VideoFrame(canvas, {
-          timestamp: (i / fps) * 1_000_000
+          timestamp,
+          duration: frameDurationUs
         })
         encoder.encode(frame, { keyFrame: i % (fps * 2) === 0 })
         frame.close()
@@ -67,33 +70,34 @@ export default function useVideoExport (containerRef) {
       encoder.close()
       muxer.finalize()
 
-      const blob = new Blob([target.buffer], { type: 'video/mp4' })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `animation-${durationSec}s.mp4`
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
+      if (!abortRef.current) {
+        const blob = new Blob([target.buffer], { type: 'video/mp4' })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `animation-${duration}s.mp4`
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+      }
     } catch (e) {
-      // Fallback to MediaRecorder if VideoEncoder unavailable
       console.warn('VideoEncoder not available, falling back to MediaRecorder:', e)
-      await fallbackRecord(canvas, durationSec)
+      if (!abortRef.current) await fallbackRecord(canvas, duration, setProgress)
     }
 
-    setRecording(false)
+    setExporting(false)
     setProgress(0)
-  }, [containerRef, recording])
+  }, [containerRef, exporting, duration])
 
-  const stop = useCallback(() => {
+  const cancel = useCallback(() => {
     abortRef.current = true
   }, [])
 
-  return { recording, progress, record, stop }
+  return { exporting, progress, duration, setDuration, exportVideo, cancel }
 }
 
-function fallbackRecord (canvas, durationSec) {
+function fallbackRecord (canvas, durationSec, setProgress) {
   return new Promise((resolve) => {
     const stream = canvas.captureStream(30)
     const mimeType = MediaRecorder.isTypeSupported('video/mp4')
@@ -101,12 +105,19 @@ function fallbackRecord (canvas, durationSec) {
       : 'video/webm'
     const chunks = []
     const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 8_000_000 })
+    const totalMs = durationSec * 1000
+    const startTime = Date.now()
 
     recorder.ondataavailable = (e) => {
       if (e.data.size > 0) chunks.push(e.data)
     }
 
+    const interval = setInterval(() => {
+      setProgress(Math.min(1, (Date.now() - startTime) / totalMs))
+    }, 100)
+
     recorder.onstop = () => {
+      clearInterval(interval)
       const ext = mimeType.includes('mp4') ? 'mp4' : 'webm'
       const blob = new Blob(chunks, { type: mimeType })
       const url = URL.createObjectURL(blob)
@@ -121,6 +132,6 @@ function fallbackRecord (canvas, durationSec) {
     }
 
     recorder.start(100)
-    setTimeout(() => recorder.stop(), durationSec * 1000)
+    setTimeout(() => recorder.stop(), totalMs)
   })
 }
