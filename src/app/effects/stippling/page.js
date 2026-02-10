@@ -4,6 +4,7 @@ import { useState, useCallback, useMemo } from 'react'
 import { useGlobalState } from '@/context/GlobalStateProvider'
 import useP5 from '@/lib/useP5'
 import useAnimation from '@/lib/useAnimation'
+import useVideoExport from '@/lib/useVideoExport'
 import { createStipplingSketch } from '@/lib/effects/stippling'
 import ControlPanel from '@/components/ControlPanel/ControlPanel'
 import FileUploader from '@/components/FileUploader/FileUploader'
@@ -45,6 +46,7 @@ export default function StipplingPage () {
   )
 
   const { containerRef, p5Ref } = useP5(sketch, [image, showEffect, bgColor, fgColor, canvasSize, preprocessing, threshold, gridType, gridAngle, ySquares, xSquares, minSquareWidth, maxSquareWidth])
+  const videoExport = useVideoExport(containerRef)
 
   const handleExport = useCallback(() => {
     if (p5Ref.current) p5Ref.current.saveCanvas('stippling', 'png')
@@ -67,7 +69,7 @@ export default function StipplingPage () {
         <SliderInput label="Max Square Width" value={maxSquareWidth} onChange={setMaxSquareWidth} min={1} max={30} step={1} />
         <ColorControls />
         <AnimationControls {...anim} />
-        <ExportButton onExport={handleExport} />
+        <ExportButton onExport={handleExport} videoExport={videoExport} animationEnabled={anim.enabled} />
       </ControlPanel>
     </>
   )

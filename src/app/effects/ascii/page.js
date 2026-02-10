@@ -4,6 +4,7 @@ import { useState, useCallback, useMemo } from 'react'
 import { useGlobalState } from '@/context/GlobalStateProvider'
 import useP5 from '@/lib/useP5'
 import useAnimation from '@/lib/useAnimation'
+import useVideoExport from '@/lib/useVideoExport'
 import { createASCIISketch } from '@/lib/effects/ascii'
 import ControlPanel from '@/components/ControlPanel/ControlPanel'
 import FileUploader from '@/components/FileUploader/FileUploader'
@@ -35,6 +36,7 @@ export default function ASCIIPage () {
     allDeps
   )
   const { containerRef, p5Ref } = useP5(sketch, allDeps)
+  const videoExport = useVideoExport(containerRef)
 
   return (
     <>
@@ -48,7 +50,7 @@ export default function ASCIIPage () {
         <Toggle label="Show Borders" checked={showBorders} onChange={setShowBorders} />
         <ColorControls />
         <AnimationControls {...anim} />
-        <ExportButton onExport={useCallback(() => { if (p5Ref.current) p5Ref.current.saveCanvas('ascii', 'png') }, [p5Ref])} />
+        <ExportButton onExport={useCallback(() => { if (p5Ref.current) p5Ref.current.saveCanvas('ascii', 'png') }, [p5Ref])} videoExport={videoExport} animationEnabled={anim.enabled} />
       </ControlPanel>
     </>
   )

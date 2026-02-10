@@ -4,6 +4,7 @@ import { useState, useCallback, useMemo } from 'react'
 import { useGlobalState } from '@/context/GlobalStateProvider'
 import useP5 from '@/lib/useP5'
 import useAnimation from '@/lib/useAnimation'
+import useVideoExport from '@/lib/useVideoExport'
 import { createDitheringSketch } from '@/lib/effects/dithering'
 import ControlPanel from '@/components/ControlPanel/ControlPanel'
 import FileUploader from '@/components/FileUploader/FileUploader'
@@ -39,6 +40,7 @@ export default function DitheringPage () {
   )
 
   const { containerRef, p5Ref } = useP5(sketch, allDeps)
+  const videoExport = useVideoExport(containerRef)
 
   const handleExport = useCallback(() => {
     if (p5Ref.current) p5Ref.current.saveCanvas('dithering', 'png')
@@ -58,7 +60,7 @@ export default function DitheringPage () {
         <SliderInput label="Threshold" value={threshold} onChange={setThreshold} min={0} max={255} step={1} />
         <ColorControls />
         <AnimationControls {...anim} />
-        <ExportButton onExport={handleExport} />
+        <ExportButton onExport={handleExport} videoExport={videoExport} animationEnabled={anim.enabled} />
       </ControlPanel>
     </>
   )

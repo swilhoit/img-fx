@@ -4,6 +4,7 @@ import { useState, useCallback, useMemo } from 'react'
 import { useGlobalState } from '@/context/GlobalStateProvider'
 import useP5 from '@/lib/useP5'
 import useAnimation from '@/lib/useAnimation'
+import useVideoExport from '@/lib/useVideoExport'
 import { createScatterSketch } from '@/lib/effects/scatter'
 import ControlPanel from '@/components/ControlPanel/ControlPanel'
 import FileUploader from '@/components/FileUploader/FileUploader'
@@ -41,6 +42,7 @@ export default function ScatterPage () {
     allDeps
   )
   const { containerRef, p5Ref } = useP5(sketch, allDeps)
+  const videoExport = useVideoExport(containerRef)
 
   return (
     <>
@@ -57,7 +59,7 @@ export default function ScatterPage () {
         <SliderInput label="Relax Strength" value={relaxStrength} onChange={setRelaxStrength} min={0} max={1} step={0.01} />
         <ColorControls />
         <AnimationControls {...anim} />
-        <ExportButton onExport={useCallback(() => { if (p5Ref.current) p5Ref.current.saveCanvas('scatter', 'png') }, [p5Ref])} />
+        <ExportButton onExport={useCallback(() => { if (p5Ref.current) p5Ref.current.saveCanvas('scatter', 'png') }, [p5Ref])} videoExport={videoExport} animationEnabled={anim.enabled} />
       </ControlPanel>
     </>
   )

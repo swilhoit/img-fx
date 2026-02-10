@@ -4,6 +4,7 @@ import { useState, useCallback, useMemo } from 'react'
 import { useGlobalState } from '@/context/GlobalStateProvider'
 import useP5 from '@/lib/useP5'
 import useAnimation from '@/lib/useAnimation'
+import useVideoExport from '@/lib/useVideoExport'
 import { createDistortSketch } from '@/lib/effects/distort'
 import ControlPanel from '@/components/ControlPanel/ControlPanel'
 import FileUploader from '@/components/FileUploader/FileUploader'
@@ -45,6 +46,7 @@ export default function DistortPage () {
     allDeps
   )
   const { containerRef, p5Ref } = useP5(sketch, allDeps)
+  const videoExport = useVideoExport(containerRef)
 
   return (
     <>
@@ -60,7 +62,7 @@ export default function DistortPage () {
         <SliderInput label="Y Shift Strength" value={yShift} onChange={setYShift} min={0} max={100} step={1} />
         <ColorControls />
         <AnimationControls {...anim} />
-        <ExportButton onExport={useCallback(() => { if (p5Ref.current) p5Ref.current.saveCanvas('distort', 'png') }, [p5Ref])} />
+        <ExportButton onExport={useCallback(() => { if (p5Ref.current) p5Ref.current.saveCanvas('distort', 'png') }, [p5Ref])} videoExport={videoExport} animationEnabled={anim.enabled} />
       </ControlPanel>
     </>
   )

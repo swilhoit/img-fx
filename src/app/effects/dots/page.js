@@ -4,6 +4,7 @@ import { useState, useCallback, useMemo } from 'react'
 import { useGlobalState } from '@/context/GlobalStateProvider'
 import useP5 from '@/lib/useP5'
 import useAnimation from '@/lib/useAnimation'
+import useVideoExport from '@/lib/useVideoExport'
 import { createDotsSketch } from '@/lib/effects/dots'
 import ControlPanel from '@/components/ControlPanel/ControlPanel'
 import FileUploader from '@/components/FileUploader/FileUploader'
@@ -48,6 +49,7 @@ export default function DotsPage () {
   )
 
   const { containerRef, p5Ref } = useP5(sketch, allDeps)
+  const videoExport = useVideoExport(containerRef)
 
   const handleExport = useCallback(() => {
     if (p5Ref.current) p5Ref.current.saveCanvas('dots', 'png')
@@ -71,7 +73,7 @@ export default function DotsPage () {
         <SliderInput label="Noise" value={noise} onChange={setNoise} min={0} max={1} step={0.01} />
         <ColorControls />
         <AnimationControls {...anim} />
-        <ExportButton onExport={handleExport} />
+        <ExportButton onExport={handleExport} videoExport={videoExport} animationEnabled={anim.enabled} />
       </ControlPanel>
     </>
   )

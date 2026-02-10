@@ -4,6 +4,7 @@ import { useState, useCallback, useMemo } from 'react'
 import { useGlobalState } from '@/context/GlobalStateProvider'
 import useP5 from '@/lib/useP5'
 import useAnimation from '@/lib/useAnimation'
+import useVideoExport from '@/lib/useVideoExport'
 import { createCellularAutomataSketch } from '@/lib/effects/cellular-automata'
 import ControlPanel from '@/components/ControlPanel/ControlPanel'
 import FileUploader from '@/components/FileUploader/FileUploader'
@@ -47,6 +48,7 @@ export default function CellularAutomataPage () {
     allDeps
   )
   const { containerRef, p5Ref } = useP5(sketch, allDeps)
+  const videoExport = useVideoExport(containerRef)
 
   return (
     <>
@@ -66,7 +68,7 @@ export default function CellularAutomataPage () {
         <SliderInput label="Birth Upper Bound" value={birthUpper} onChange={setBirthUpper} min={0} max={8} step={1} />
         <ColorControls />
         <AnimationControls {...anim} />
-        <ExportButton onExport={useCallback(() => { if (p5Ref.current) p5Ref.current.saveCanvas('cellular-automata', 'png') }, [p5Ref])} />
+        <ExportButton onExport={useCallback(() => { if (p5Ref.current) p5Ref.current.saveCanvas('cellular-automata', 'png') }, [p5Ref])} videoExport={videoExport} animationEnabled={anim.enabled} />
       </ControlPanel>
     </>
   )
