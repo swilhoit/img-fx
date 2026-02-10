@@ -35,8 +35,11 @@ const CHAR_RAMPS = {
 }
 
 function render (p, data, imgW, imgH, params, cols, rows, charW, charH) {
-  const { characterSet = 'standard', showBorders = false } = params
-  const ramp = CHAR_RAMPS[characterSet] || CHAR_RAMPS.standard
+  const { characterSet = 'standard', customChars = '', invertRamp = false, showBorders = false } = params
+  let ramp = characterSet === 'custom' && customChars.length >= 2
+    ? customChars
+    : CHAR_RAMPS[characterSet] || CHAR_RAMPS.standard
+  if (invertRamp) ramp = ramp.split('').reverse().join('')
   const bg = hexToRgb(params.bgColor)
   const fg = hexToRgb(params.fgColor)
 
