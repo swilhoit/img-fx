@@ -1,0 +1,26 @@
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  cursor: pointer;
+
+  label {
+    color: var(--text-label);
+    font-size: 12px;
+    cursor: pointer;
+  }
+}
+
+.box {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--text-dim);
+  font-size: 12px;
+
+  input[type='checkbox'] {
+    cursor: pointer;
+    accent-color: var(--accent);
+  }
+}

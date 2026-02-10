@@ -1,0 +1,45 @@
+'use client'
+
+import { useState, useCallback } from 'react'
+import { useGlobalState } from '@/context/GlobalStateProvider'
+import useP5 from '@/lib/useP5'
+import { createDisplaceSketch } from '@/lib/effects/displace'
+import ControlPanel from '@/components/ControlPanel/ControlPanel'
+import FileUploader from '@/components/FileUploader/FileUploader'
+import SliderInput from '@/components/SliderInput/SliderInput'
+import Toggle from '@/components/Toggle/Toggle'
+import PreprocessingControls from '@/components/PreprocessingControls'
+import ExportButton from '@/components/ExportButton/ExportButton'
+
+export default function DisplacePage () {
+  const { image, loadImage, canvasSize, setCanvasSize, showEffect, setShowEffect } = useGlobalState()
+  const [preprocessing, setPreprocessing] = useState({ blur: 0, grain: 0, gamma: 1, blackPoint: 0, whitePoint: 255 })
+  const [stepSize, setStepSize] = useState(6)
+  const [displacement, setDisplacement] = useState(10)
+  const [dotSize, setDotSize] = useState(4)
+
+  const allDeps = [image, showEffect, canvasSize, preprocessing, stepSize, displacement, dotSize]
+  const params = { canvasSize, preprocessing, stepSize, displacement, dotSize }
+
+  const sketch = useCallback(
+    (p) => createDisplaceSketch(showEffect ? image : null, params)(p),
+    allDeps
+  )
+  const { containerRef, p5Ref } = useP5(sketch, allDeps)
+
+  return (
+    <>
+      <div className="canvas-area" ref={containerRef} />
+      <ControlPanel>
+        <FileUploader onFile={loadImage} accept=".jpg,.png" />
+        <SliderInput label="Canvas Size" value={canvasSize} onChange={setCanvasSize} min={100} max={1000} step={1} />
+        <PreprocessingControls params={preprocessing} onChange={setPreprocessing} />
+        <Toggle label="Show Effect" checked={showEffect} onChange={setShowEffect} />
+        <SliderInput label="Step Size" value={stepSize} onChange={setStepSize} min={2} max={20} step={1} />
+        <SliderInput label="Displacement" value={displacement} onChange={setDisplacement} min={0} max={50} step={1} />
+        <SliderInput label="Dot Size" value={dotSize} onChange={setDotSize} min={1} max={20} step={1} />
+        <ExportButton onExport={useCallback(() => { if (p5Ref.current) p5Ref.current.saveCanvas('displace', 'png') }, [p5Ref])} />
+      </ControlPanel>
+    </>
+  )
+}

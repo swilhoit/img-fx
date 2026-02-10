@@ -1,0 +1,81 @@
+import { applyPreprocessing, getGrayscale, resizeImageData } from '../preprocessing'
+
+export function createCellularAutomataSketch (image, params) {
+  return (p) => {
+    p.setup = () => {
+      if (!image) {
+        p.createCanvas(params.canvasSize, params.canvasSize)
+        p.background(255)
+        return
+      }
+      const { imageData, width, height } = resizeImageData(image, params.canvasSize)
+      p.createCanvas(width, height)
+      const pre = applyPreprocessing(imageData.data, width, height, params.preprocessing)
+      render(p, pre, width, height, params)
+    }
+
+    p.draw = () => { p.noLoop() }
+  }
+}
+
+function render (p, data, width, height, params) {
+  const {
+    threshold = 128, cellSize = 4, steps = 3,
+    type = 'Classic',
+    surviveLower = 2, surviveUpper = 3,
+    birthLower = 3, birthUpper = 3
+  } = params
+
+  const cols = Math.ceil(width / cellSize)
+  const rows = Math.ceil(height / cellSize)
+
+  let grid = new Uint8Array(cols * rows)
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const px = Math.min(Math.floor((c + 0.5) * cellSize), width - 1)
+      const py = Math.min(Math.floor((r + 0.5) * cellSize), height - 1)
+      const idx = (py * width + px) * 4
+      const gray = getGrayscale(data[idx], data[idx + 1], data[idx + 2])
+      grid[r * cols + c] = gray < threshold ? 1 : 0
+    }
+  }
+
+  const range = type === 'LTL' ? 2 : 1
+
+  for (let s = 0; s < steps; s++) {
+    const next = new Uint8Array(cols * rows)
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        let neighbors = 0
+        for (let dy = -range; dy <= range; dy++) {
+          for (let dx = -range; dx <= range; dx++) {
+            if (dx === 0 && dy === 0) continue
+            const nr = (r + dy + rows) % rows
+            const nc = (c + dx + cols) % cols
+            neighbors += grid[nr * cols + nc]
+          }
+        }
+
+        const alive = grid[r * cols + c]
+        if (alive) {
+          next[r * cols + c] = (neighbors >= surviveLower && neighbors <= surviveUpper) ? 1 : 0
+        } else {
+          next[r * cols + c] = (neighbors >= birthLower && neighbors <= birthUpper) ? 1 : 0
+        }
+      }
+    }
+    grid = next
+  }
+
+  p.background(255)
+  p.fill(0)
+  p.noStroke()
+
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      if (grid[r * cols + c]) {
+        p.rect(c * cellSize, r * cellSize, cellSize, cellSize)
+      }
+    }
+  }
+}

@@ -1,0 +1,50 @@
+'use client'
+
+import { useState, useCallback } from 'react'
+import { useGlobalState } from '@/context/GlobalStateProvider'
+import useP5 from '@/lib/useP5'
+import { createPatternsSketch } from '@/lib/effects/patterns'
+import ControlPanel from '@/components/ControlPanel/ControlPanel'
+import FileUploader from '@/components/FileUploader/FileUploader'
+import SliderInput from '@/components/SliderInput/SliderInput'
+import Toggle from '@/components/Toggle/Toggle'
+import PreprocessingControls from '@/components/PreprocessingControls'
+import ExportButton from '@/components/ExportButton/ExportButton'
+
+export default function PatternsPage () {
+  const { image, loadImage, canvasSize, setCanvasSize, showEffect, setShowEffect } = useGlobalState()
+  const [preprocessing, setPreprocessing] = useState({ blur: 0, grain: 0, gamma: 1, blackPoint: 0, whitePoint: 255 })
+  const [patternImages, setPatternImages] = useState([])
+  const [threshold, setThreshold] = useState(128)
+  const [gridDensity, setGridDensity] = useState(20)
+
+  const handlePatternUpload = (file) => {
+    const url = URL.createObjectURL(file)
+    setPatternImages(prev => [...prev, url])
+  }
+
+  const allDeps = [image, showEffect, canvasSize, preprocessing, patternImages, threshold, gridDensity]
+  const params = { canvasSize, preprocessing, threshold, gridDensity }
+
+  const sketch = useCallback(
+    (p) => createPatternsSketch(showEffect ? image : null, patternImages, params)(p),
+    allDeps
+  )
+  const { containerRef, p5Ref } = useP5(sketch, allDeps)
+
+  return (
+    <>
+      <div className="canvas-area" ref={containerRef} />
+      <ControlPanel>
+        <FileUploader onFile={loadImage} accept=".jpg,.png,.mp4" />
+        <FileUploader label="Upload patterns" onFile={handlePatternUpload} accept=".jpg,.png" id="patterns" />
+        <SliderInput label="Canvas Size" value={canvasSize} onChange={setCanvasSize} min={100} max={1000} step={1} />
+        <PreprocessingControls params={preprocessing} onChange={setPreprocessing} />
+        <Toggle label="Show Effect" checked={showEffect} onChange={setShowEffect} />
+        <SliderInput label="Threshold" value={threshold} onChange={setThreshold} min={0} max={255} step={1} />
+        <SliderInput label="Grid Density" value={gridDensity} onChange={setGridDensity} min={5} max={100} step={1} />
+        <ExportButton onExport={useCallback(() => { if (p5Ref.current) p5Ref.current.saveCanvas('patterns', 'png') }, [p5Ref])} />
+      </ControlPanel>
+    </>
+  )
+}

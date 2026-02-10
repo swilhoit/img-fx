@@ -1,0 +1,28 @@
+.uploader {
+  padding: 8px 0;
+}
+
+.label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  cursor: pointer;
+  color: var(--text);
+
+  &:hover {
+    color: var(--accent);
+  }
+}
+
+.shortcut {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.display {
+  color: var(--text-dim);
+  font-size: 11px;
+  padding: 2px 0;
+}

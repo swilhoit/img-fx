@@ -1,0 +1,16 @@
+.wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.label {
+  flex: 1;
+  color: var(--text-label);
+  font-size: 12px;
+}
+
+.select {
+  flex-shrink: 0;
+}

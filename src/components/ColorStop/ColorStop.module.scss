@@ -1,0 +1,50 @@
+.wrapper {
+  padding: 4px 0;
+}
+
+.stop {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 0;
+  color: var(--text-dim);
+  font-size: 12px;
+}
+
+.color {
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  padding: 0;
+  background: none;
+
+  &::-webkit-color-swatch-wrapper {
+    padding: 2px;
+  }
+
+  &::-webkit-color-swatch {
+    border: none;
+    border-radius: 2px;
+  }
+}
+
+.position {
+  width: 40px;
+  text-align: right;
+}
+
+.remove, .add {
+  color: var(--text-dim);
+  font-size: 12px;
+  padding: 2px 6px;
+
+  &:hover {
+    color: var(--text);
+  }
+}
+
+.add {
+  margin-top: 4px;
+}

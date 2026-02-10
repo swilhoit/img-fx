@@ -1,0 +1,53 @@
+'use client'
+
+import { useState, useCallback } from 'react'
+import { useGlobalState } from '@/context/GlobalStateProvider'
+import useP5 from '@/lib/useP5'
+import { createDitheringSketch } from '@/lib/effects/dithering'
+import ControlPanel from '@/components/ControlPanel/ControlPanel'
+import FileUploader from '@/components/FileUploader/FileUploader'
+import SliderInput from '@/components/SliderInput/SliderInput'
+import Toggle from '@/components/Toggle/Toggle'
+import SelectInput from '@/components/SelectInput/SelectInput'
+import PreprocessingControls from '@/components/PreprocessingControls'
+import ExportButton from '@/components/ExportButton/ExportButton'
+
+export default function DitheringPage () {
+  const { image, loadImage, canvasSize, setCanvasSize, showEffect, setShowEffect } = useGlobalState()
+  const [preprocessing, setPreprocessing] = useState({ blur: 0, grain: 0, gamma: 1, blackPoint: 0, whitePoint: 255 })
+  const [pattern, setPattern] = useState('F-S')
+  const [pixelSize, setPixelSize] = useState(1)
+  const [colorMode, setColorMode] = useState('BW')
+  const [threshold, setThreshold] = useState(128)
+
+  const allDeps = [image, showEffect, canvasSize, preprocessing, pattern, pixelSize, colorMode, threshold]
+  const params = { canvasSize, preprocessing, pattern, pixelSize, colorMode, threshold }
+
+  const sketch = useCallback(
+    (p) => createDitheringSketch(showEffect ? image : null, params)(p),
+    allDeps
+  )
+
+  const { containerRef, p5Ref } = useP5(sketch, allDeps)
+
+  const handleExport = useCallback(() => {
+    if (p5Ref.current) p5Ref.current.saveCanvas('dithering', 'png')
+  }, [p5Ref])
+
+  return (
+    <>
+      <div className="canvas-area" ref={containerRef} />
+      <ControlPanel>
+        <FileUploader onFile={loadImage} accept=".jpg,.png,.mp4" />
+        <SliderInput label="Canvas Size" value={canvasSize} onChange={setCanvasSize} min={100} max={1000} step={1} />
+        <PreprocessingControls params={preprocessing} onChange={setPreprocessing} />
+        <Toggle label="Show Effect" checked={showEffect} onChange={setShowEffect} />
+        <SelectInput label="Pattern" value={pattern} onChange={setPattern} options={['F-S', 'Bayer', 'Random']} />
+        <SliderInput label="Pixel Size" value={pixelSize} onChange={setPixelSize} min={1} max={10} step={1} />
+        <SelectInput label="Color Mode" value={colorMode} onChange={setColorMode} options={['BW', 'Color']} />
+        <SliderInput label="Threshold" value={threshold} onChange={setThreshold} min={0} max={255} step={1} />
+        <ExportButton onExport={handleExport} />
+      </ControlPanel>
+    </>
+  )
+}

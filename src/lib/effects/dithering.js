@@ -1,0 +1,106 @@
+import { applyPreprocessing, getGrayscale, resizeImageData } from '../preprocessing'
+
+export function createDitheringSketch (image, params) {
+  return (p) => {
+    p.setup = () => {
+      if (!image) {
+        p.createCanvas(params.canvasSize, params.canvasSize)
+        p.background(255)
+        return
+      }
+      const { imageData, width, height } = resizeImageData(image, params.canvasSize)
+      p.createCanvas(width, height)
+      const pre = applyPreprocessing(imageData.data, width, height, params.preprocessing)
+      render(p, pre, width, height, params)
+    }
+
+    p.draw = () => { p.noLoop() }
+  }
+}
+
+const BAYER_4 = [
+  [0, 8, 2, 10],
+  [12, 4, 14, 6],
+  [3, 11, 1, 9],
+  [15, 7, 13, 5]
+]
+
+function render (p, data, width, height, params) {
+  const { pattern = 'F-S', pixelSize = 1, colorMode = 'BW', threshold = 128 } = params
+  const gray = new Float32Array(width * height)
+
+  for (let i = 0; i < width * height; i++) {
+    gray[i] = getGrayscale(data[i * 4], data[i * 4 + 1], data[i * 4 + 2])
+  }
+
+  if (pattern === 'F-S') {
+    floydSteinberg(gray, width, height, threshold)
+  } else if (pattern === 'Bayer') {
+    bayer(gray, width, height)
+  } else {
+    randomDither(gray, width, height, threshold)
+  }
+
+  p.loadPixels()
+  const ps = Math.max(1, Math.round(pixelSize))
+
+  for (let y = 0; y < height; y += ps) {
+    for (let x = 0; x < width; x += ps) {
+      const val = gray[y * width + x] > 127 ? 255 : 0
+
+      for (let dy = 0; dy < ps && y + dy < height; dy++) {
+        for (let dx = 0; dx < ps && x + dx < width; dx++) {
+          const idx = ((y + dy) * width + (x + dx)) * 4
+          if (colorMode === 'BW') {
+            p.pixels[idx] = val
+            p.pixels[idx + 1] = val
+            p.pixels[idx + 2] = val
+          } else {
+            const oi = ((y + dy) * width + (x + dx)) * 4
+            p.pixels[idx] = val > 127 ? data[oi] : 0
+            p.pixels[idx + 1] = val > 127 ? data[oi + 1] : 0
+            p.pixels[idx + 2] = val > 127 ? data[oi + 2] : 0
+          }
+          p.pixels[idx + 3] = 255
+        }
+      }
+    }
+  }
+  p.updatePixels()
+}
+
+function floydSteinberg (gray, w, h, threshold) {
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const idx = y * w + x
+      const old = gray[idx]
+      const val = old > threshold ? 255 : 0
+      gray[idx] = val
+      const err = old - val
+
+      if (x + 1 < w) gray[idx + 1] += err * 7 / 16
+      if (y + 1 < h) {
+        if (x - 1 >= 0) gray[(y + 1) * w + x - 1] += err * 3 / 16
+        gray[(y + 1) * w + x] += err * 5 / 16
+        if (x + 1 < w) gray[(y + 1) * w + x + 1] += err * 1 / 16
+      }
+    }
+  }
+}
+
+function bayer (gray, w, h) {
+  const n = 4
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const threshold = (BAYER_4[y % n][x % n] / 16) * 255
+      gray[y * w + x] = gray[y * w + x] > threshold ? 255 : 0
+    }
+  }
+}
+
+function randomDither (gray, w, h, threshold) {
+  for (let i = 0; i < w * h; i++) {
+    const t = threshold + (Math.random() - 0.5) * 128
+    gray[i] = gray[i] > t ? 255 : 0
+  }
+}
