@@ -23,10 +23,7 @@ export default function ASCIIPage () {
   const [characterSet, setCharacterSet] = useState('standard')
   const [showBorders, setShowBorders] = useState(false)
 
-  const paramDefs = useMemo(() => ({
-    columns: { value: columns, set: setColumns, min: 10, max: 200, step: 1 },
-    rows: { value: rows, set: setRows, min: 5, max: 100, step: 1 }
-  }), [columns, rows])
+  const paramDefs = useMemo(() => ({}), [])
 
   const anim = useAnimation(paramDefs)
 
