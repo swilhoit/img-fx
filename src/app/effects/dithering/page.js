@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { useGlobalState } from '@/context/GlobalStateProvider'
 import useP5 from '@/lib/useP5'
+import useAnimation from '@/lib/useAnimation'
 import { createDitheringSketch } from '@/lib/effects/dithering'
 import ControlPanel from '@/components/ControlPanel/ControlPanel'
 import FileUploader from '@/components/FileUploader/FileUploader'
@@ -10,6 +11,7 @@ import SliderInput from '@/components/SliderInput/SliderInput'
 import Toggle from '@/components/Toggle/Toggle'
 import SelectInput from '@/components/SelectInput/SelectInput'
 import PreprocessingControls from '@/components/PreprocessingControls'
+import AnimationControls from '@/components/AnimationControls/AnimationControls'
 import ExportButton from '@/components/ExportButton/ExportButton'
 
 export default function DitheringPage () {
@@ -19,6 +21,13 @@ export default function DitheringPage () {
   const [pixelSize, setPixelSize] = useState(1)
   const [colorMode, setColorMode] = useState('BW')
   const [threshold, setThreshold] = useState(128)
+
+  const paramDefs = useMemo(() => ({
+    pixelSize: { value: pixelSize, set: setPixelSize, min: 1, max: 10, step: 1 },
+    threshold: { value: threshold, set: setThreshold, min: 0, max: 255, step: 1 }
+  }), [pixelSize, threshold])
+
+  const anim = useAnimation(paramDefs)
 
   const allDeps = [image, showEffect, canvasSize, preprocessing, pattern, pixelSize, colorMode, threshold]
   const params = { canvasSize, preprocessing, pattern, pixelSize, colorMode, threshold }
@@ -46,6 +55,7 @@ export default function DitheringPage () {
         <SliderInput label="Pixel Size" value={pixelSize} onChange={setPixelSize} min={1} max={10} step={1} />
         <SelectInput label="Color Mode" value={colorMode} onChange={setColorMode} options={['BW', 'Color']} />
         <SliderInput label="Threshold" value={threshold} onChange={setThreshold} min={0} max={255} step={1} />
+        <AnimationControls {...anim} />
         <ExportButton onExport={handleExport} />
       </ControlPanel>
     </>

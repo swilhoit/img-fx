@@ -1,14 +1,16 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { useGlobalState } from '@/context/GlobalStateProvider'
 import useP5 from '@/lib/useP5'
+import useAnimation from '@/lib/useAnimation'
 import { createScatterSketch } from '@/lib/effects/scatter'
 import ControlPanel from '@/components/ControlPanel/ControlPanel'
 import FileUploader from '@/components/FileUploader/FileUploader'
 import SliderInput from '@/components/SliderInput/SliderInput'
 import Toggle from '@/components/Toggle/Toggle'
 import PreprocessingControls from '@/components/PreprocessingControls'
+import AnimationControls from '@/components/AnimationControls/AnimationControls'
 import ExportButton from '@/components/ExportButton/ExportButton'
 
 export default function ScatterPage () {
@@ -19,6 +21,16 @@ export default function ScatterPage () {
   const [maxDotSize, setMaxDotSize] = useState(14)
   const [relaxIterations, setRelaxIterations] = useState(1)
   const [relaxStrength, setRelaxStrength] = useState(0.16)
+
+  const paramDefs = useMemo(() => ({
+    pointDensity: { value: pointDensity, set: setPointDensity, min: 0, max: 0.2, step: 0.001 },
+    minDotSize: { value: minDotSize, set: setMinDotSize, min: 1, max: 50, step: 1 },
+    maxDotSize: { value: maxDotSize, set: setMaxDotSize, min: 1, max: 50, step: 1 },
+    relaxIterations: { value: relaxIterations, set: setRelaxIterations, min: 0, max: 20, step: 1 },
+    relaxStrength: { value: relaxStrength, set: setRelaxStrength, min: 0, max: 1, step: 0.01 }
+  }), [pointDensity, minDotSize, maxDotSize, relaxIterations, relaxStrength])
+
+  const anim = useAnimation(paramDefs)
 
   const allDeps = [image, showEffect, canvasSize, preprocessing, pointDensity, minDotSize, maxDotSize, relaxIterations, relaxStrength]
   const params = { canvasSize, preprocessing, pointDensity, minDotSize, maxDotSize, relaxIterations, relaxStrength }
@@ -42,6 +54,7 @@ export default function ScatterPage () {
         <SliderInput label="Max Dot Size" value={maxDotSize} onChange={setMaxDotSize} min={1} max={50} step={1} />
         <SliderInput label="Relax Iterations" value={relaxIterations} onChange={setRelaxIterations} min={0} max={20} step={1} />
         <SliderInput label="Relax Strength" value={relaxStrength} onChange={setRelaxStrength} min={0} max={1} step={0.01} />
+        <AnimationControls {...anim} />
         <ExportButton onExport={useCallback(() => { if (p5Ref.current) p5Ref.current.saveCanvas('scatter', 'png') }, [p5Ref])} />
       </ControlPanel>
     </>

@@ -1,14 +1,16 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { useGlobalState } from '@/context/GlobalStateProvider'
 import useP5 from '@/lib/useP5'
+import useAnimation from '@/lib/useAnimation'
 import { createDisplaceSketch } from '@/lib/effects/displace'
 import ControlPanel from '@/components/ControlPanel/ControlPanel'
 import FileUploader from '@/components/FileUploader/FileUploader'
 import SliderInput from '@/components/SliderInput/SliderInput'
 import Toggle from '@/components/Toggle/Toggle'
 import PreprocessingControls from '@/components/PreprocessingControls'
+import AnimationControls from '@/components/AnimationControls/AnimationControls'
 import ExportButton from '@/components/ExportButton/ExportButton'
 
 export default function DisplacePage () {
@@ -17,6 +19,14 @@ export default function DisplacePage () {
   const [stepSize, setStepSize] = useState(6)
   const [displacement, setDisplacement] = useState(10)
   const [dotSize, setDotSize] = useState(4)
+
+  const paramDefs = useMemo(() => ({
+    stepSize: { value: stepSize, set: setStepSize, min: 2, max: 20, step: 1 },
+    displacement: { value: displacement, set: setDisplacement, min: 0, max: 50, step: 1 },
+    dotSize: { value: dotSize, set: setDotSize, min: 1, max: 20, step: 1 }
+  }), [stepSize, displacement, dotSize])
+
+  const anim = useAnimation(paramDefs)
 
   const allDeps = [image, showEffect, canvasSize, preprocessing, stepSize, displacement, dotSize]
   const params = { canvasSize, preprocessing, stepSize, displacement, dotSize }
@@ -38,6 +48,7 @@ export default function DisplacePage () {
         <SliderInput label="Step Size" value={stepSize} onChange={setStepSize} min={2} max={20} step={1} />
         <SliderInput label="Displacement" value={displacement} onChange={setDisplacement} min={0} max={50} step={1} />
         <SliderInput label="Dot Size" value={dotSize} onChange={setDotSize} min={1} max={20} step={1} />
+        <AnimationControls {...anim} />
         <ExportButton onExport={useCallback(() => { if (p5Ref.current) p5Ref.current.saveCanvas('displace', 'png') }, [p5Ref])} />
       </ControlPanel>
     </>

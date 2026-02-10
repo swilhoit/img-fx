@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { useGlobalState } from '@/context/GlobalStateProvider'
 import useP5 from '@/lib/useP5'
+import useAnimation from '@/lib/useAnimation'
 import { createDotsSketch } from '@/lib/effects/dots'
 import ControlPanel from '@/components/ControlPanel/ControlPanel'
 import FileUploader from '@/components/FileUploader/FileUploader'
@@ -10,6 +11,7 @@ import SliderInput from '@/components/SliderInput/SliderInput'
 import Toggle from '@/components/Toggle/Toggle'
 import SelectInput from '@/components/SelectInput/SelectInput'
 import PreprocessingControls from '@/components/PreprocessingControls'
+import AnimationControls from '@/components/AnimationControls/AnimationControls'
 import ExportButton from '@/components/ExportButton/ExportButton'
 
 export default function DotsPage () {
@@ -23,6 +25,18 @@ export default function DotsPage () {
   const [cornerRadius, setCornerRadius] = useState(0)
   const [stepSize, setStepSize] = useState(8)
   const [noise, setNoise] = useState(0)
+
+  const paramDefs = useMemo(() => ({
+    threshold: { value: threshold, set: setThreshold, min: 0, max: 255, step: 1 },
+    gridAngle: { value: gridAngle, set: setGridAngle, min: 0, max: 360, step: 1 },
+    minDotSize: { value: minDotSize, set: setMinDotSize, min: 1, max: 50, step: 1 },
+    maxDotSize: { value: maxDotSize, set: setMaxDotSize, min: 1, max: 50, step: 1 },
+    cornerRadius: { value: cornerRadius, set: setCornerRadius, min: 0, max: 25, step: 1 },
+    stepSize: { value: stepSize, set: setStepSize, min: 2, max: 30, step: 1 },
+    noise: { value: noise, set: setNoise, min: 0, max: 1, step: 0.01 }
+  }), [threshold, gridAngle, minDotSize, maxDotSize, cornerRadius, stepSize, noise])
+
+  const anim = useAnimation(paramDefs)
 
   const allDeps = [image, showEffect, canvasSize, preprocessing, threshold, gridType, gridAngle, minDotSize, maxDotSize, cornerRadius, stepSize, noise]
   const params = { canvasSize, preprocessing, threshold, gridType, gridAngle, minDotSize, maxDotSize, cornerRadius, stepSize, noise }
@@ -54,6 +68,7 @@ export default function DotsPage () {
         <SliderInput label="Corner Radius" value={cornerRadius} onChange={setCornerRadius} min={0} max={25} step={1} />
         <SliderInput label="Step Size" value={stepSize} onChange={setStepSize} min={2} max={30} step={1} />
         <SliderInput label="Noise" value={noise} onChange={setNoise} min={0} max={1} step={0.01} />
+        <AnimationControls {...anim} />
         <ExportButton onExport={handleExport} />
       </ControlPanel>
     </>

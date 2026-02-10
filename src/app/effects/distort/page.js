@@ -1,14 +1,16 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { useGlobalState } from '@/context/GlobalStateProvider'
 import useP5 from '@/lib/useP5'
+import useAnimation from '@/lib/useAnimation'
 import { createDistortSketch } from '@/lib/effects/distort'
 import ControlPanel from '@/components/ControlPanel/ControlPanel'
 import FileUploader from '@/components/FileUploader/FileUploader'
 import SliderInput from '@/components/SliderInput/SliderInput'
 import Toggle from '@/components/Toggle/Toggle'
 import PreprocessingControls from '@/components/PreprocessingControls'
+import AnimationControls from '@/components/AnimationControls/AnimationControls'
 import ExportButton from '@/components/ExportButton/ExportButton'
 
 export default function DistortPage () {
@@ -25,6 +27,14 @@ export default function DistortPage () {
     img.onload = () => setDistortionMap(img)
     img.src = url
   }
+
+  const paramDefs = useMemo(() => ({
+    threshold: { value: threshold, set: setThreshold, min: 0, max: 255, step: 1 },
+    xShift: { value: xShift, set: setXShift, min: 0, max: 100, step: 1 },
+    yShift: { value: yShift, set: setYShift, min: 0, max: 100, step: 1 }
+  }), [threshold, xShift, yShift])
+
+  const anim = useAnimation(paramDefs)
 
   const allDeps = [image, showEffect, canvasSize, preprocessing, distortionMap, threshold, xShift, yShift]
   const params = { canvasSize, preprocessing, threshold, xShift, yShift }
@@ -47,6 +57,7 @@ export default function DistortPage () {
         <SliderInput label="Threshold" value={threshold} onChange={setThreshold} min={0} max={255} step={1} />
         <SliderInput label="X Shift Strength" value={xShift} onChange={setXShift} min={0} max={100} step={1} />
         <SliderInput label="Y Shift Strength" value={yShift} onChange={setYShift} min={0} max={100} step={1} />
+        <AnimationControls {...anim} />
         <ExportButton onExport={useCallback(() => { if (p5Ref.current) p5Ref.current.saveCanvas('distort', 'png') }, [p5Ref])} />
       </ControlPanel>
     </>

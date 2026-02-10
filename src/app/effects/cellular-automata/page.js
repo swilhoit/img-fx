@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { useGlobalState } from '@/context/GlobalStateProvider'
 import useP5 from '@/lib/useP5'
+import useAnimation from '@/lib/useAnimation'
 import { createCellularAutomataSketch } from '@/lib/effects/cellular-automata'
 import ControlPanel from '@/components/ControlPanel/ControlPanel'
 import FileUploader from '@/components/FileUploader/FileUploader'
@@ -10,6 +11,7 @@ import SliderInput from '@/components/SliderInput/SliderInput'
 import Toggle from '@/components/Toggle/Toggle'
 import SelectInput from '@/components/SelectInput/SelectInput'
 import PreprocessingControls from '@/components/PreprocessingControls'
+import AnimationControls from '@/components/AnimationControls/AnimationControls'
 import ExportButton from '@/components/ExportButton/ExportButton'
 
 export default function CellularAutomataPage () {
@@ -23,6 +25,18 @@ export default function CellularAutomataPage () {
   const [surviveUpper, setSurviveUpper] = useState(3)
   const [birthLower, setBirthLower] = useState(3)
   const [birthUpper, setBirthUpper] = useState(3)
+
+  const paramDefs = useMemo(() => ({
+    threshold: { value: threshold, set: setThreshold, min: 0, max: 255, step: 1 },
+    cellSize: { value: cellSize, set: setCellSize, min: 1, max: 20, step: 1 },
+    steps: { value: steps, set: setSteps, min: 0, max: 50, step: 1 },
+    surviveLower: { value: surviveLower, set: setSurviveLower, min: 0, max: 8, step: 1 },
+    surviveUpper: { value: surviveUpper, set: setSurviveUpper, min: 0, max: 8, step: 1 },
+    birthLower: { value: birthLower, set: setBirthLower, min: 0, max: 8, step: 1 },
+    birthUpper: { value: birthUpper, set: setBirthUpper, min: 0, max: 8, step: 1 }
+  }), [threshold, cellSize, steps, surviveLower, surviveUpper, birthLower, birthUpper])
+
+  const anim = useAnimation(paramDefs)
 
   const allDeps = [image, showEffect, canvasSize, preprocessing, threshold, cellSize, steps, type, surviveLower, surviveUpper, birthLower, birthUpper]
   const params = { canvasSize, preprocessing, threshold, cellSize, steps, type, surviveLower, surviveUpper, birthLower, birthUpper }
@@ -49,6 +63,7 @@ export default function CellularAutomataPage () {
         <SliderInput label="Survive Upper Bound" value={surviveUpper} onChange={setSurviveUpper} min={0} max={8} step={1} />
         <SliderInput label="Birth Lower Bound" value={birthLower} onChange={setBirthLower} min={0} max={8} step={1} />
         <SliderInput label="Birth Upper Bound" value={birthUpper} onChange={setBirthUpper} min={0} max={8} step={1} />
+        <AnimationControls {...anim} />
         <ExportButton onExport={useCallback(() => { if (p5Ref.current) p5Ref.current.saveCanvas('cellular-automata', 'png') }, [p5Ref])} />
       </ControlPanel>
     </>

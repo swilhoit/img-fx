@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { useGlobalState } from '@/context/GlobalStateProvider'
 import useP5 from '@/lib/useP5'
+import useAnimation from '@/lib/useAnimation'
 import { createASCIISketch } from '@/lib/effects/ascii'
 import ControlPanel from '@/components/ControlPanel/ControlPanel'
 import FileUploader from '@/components/FileUploader/FileUploader'
@@ -10,6 +11,7 @@ import SliderInput from '@/components/SliderInput/SliderInput'
 import Toggle from '@/components/Toggle/Toggle'
 import SelectInput from '@/components/SelectInput/SelectInput'
 import PreprocessingControls from '@/components/PreprocessingControls'
+import AnimationControls from '@/components/AnimationControls/AnimationControls'
 import ExportButton from '@/components/ExportButton/ExportButton'
 
 export default function ASCIIPage () {
@@ -19,6 +21,13 @@ export default function ASCIIPage () {
   const [rows, setRows] = useState(40)
   const [characterSet, setCharacterSet] = useState('standard')
   const [showBorders, setShowBorders] = useState(false)
+
+  const paramDefs = useMemo(() => ({
+    columns: { value: columns, set: setColumns, min: 10, max: 200, step: 1 },
+    rows: { value: rows, set: setRows, min: 5, max: 100, step: 1 }
+  }), [columns, rows])
+
+  const anim = useAnimation(paramDefs)
 
   const allDeps = [image, showEffect, preprocessing, columns, rows, characterSet, showBorders]
   const params = { canvasSize: 600, preprocessing, columns, rows, characterSet, showBorders }
@@ -39,6 +48,7 @@ export default function ASCIIPage () {
         <SliderInput label="Rows" value={rows} onChange={setRows} min={5} max={100} step={1} />
         <SelectInput label="Character Set" value={characterSet} onChange={setCharacterSet} options={['standard', 'blocks', 'simple', 'detailed']} />
         <Toggle label="Show Borders" checked={showBorders} onChange={setShowBorders} />
+        <AnimationControls {...anim} />
         <ExportButton onExport={useCallback(() => { if (p5Ref.current) p5Ref.current.saveCanvas('ascii', 'png') }, [p5Ref])} />
       </ControlPanel>
     </>

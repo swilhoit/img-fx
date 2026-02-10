@@ -1,14 +1,16 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { useGlobalState } from '@/context/GlobalStateProvider'
 import useP5 from '@/lib/useP5'
+import useAnimation from '@/lib/useAnimation'
 import { createPatternsSketch } from '@/lib/effects/patterns'
 import ControlPanel from '@/components/ControlPanel/ControlPanel'
 import FileUploader from '@/components/FileUploader/FileUploader'
 import SliderInput from '@/components/SliderInput/SliderInput'
 import Toggle from '@/components/Toggle/Toggle'
 import PreprocessingControls from '@/components/PreprocessingControls'
+import AnimationControls from '@/components/AnimationControls/AnimationControls'
 import ExportButton from '@/components/ExportButton/ExportButton'
 
 export default function PatternsPage () {
@@ -22,6 +24,13 @@ export default function PatternsPage () {
     const url = URL.createObjectURL(file)
     setPatternImages(prev => [...prev, url])
   }
+
+  const paramDefs = useMemo(() => ({
+    threshold: { value: threshold, set: setThreshold, min: 0, max: 255, step: 1 },
+    gridDensity: { value: gridDensity, set: setGridDensity, min: 5, max: 100, step: 1 }
+  }), [threshold, gridDensity])
+
+  const anim = useAnimation(paramDefs)
 
   const allDeps = [image, showEffect, canvasSize, preprocessing, patternImages, threshold, gridDensity]
   const params = { canvasSize, preprocessing, threshold, gridDensity }
@@ -43,6 +52,7 @@ export default function PatternsPage () {
         <Toggle label="Show Effect" checked={showEffect} onChange={setShowEffect} />
         <SliderInput label="Threshold" value={threshold} onChange={setThreshold} min={0} max={255} step={1} />
         <SliderInput label="Grid Density" value={gridDensity} onChange={setGridDensity} min={5} max={100} step={1} />
+        <AnimationControls {...anim} />
         <ExportButton onExport={useCallback(() => { if (p5Ref.current) p5Ref.current.saveCanvas('patterns', 'png') }, [p5Ref])} />
       </ControlPanel>
     </>

@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { useGlobalState } from '@/context/GlobalStateProvider'
 import useP5 from '@/lib/useP5'
+import useAnimation from '@/lib/useAnimation'
 import { createCRTSketch } from '@/lib/effects/crt'
 import ControlPanel from '@/components/ControlPanel/ControlPanel'
 import FileUploader from '@/components/FileUploader/FileUploader'
@@ -10,6 +11,7 @@ import SliderInput from '@/components/SliderInput/SliderInput'
 import Toggle from '@/components/Toggle/Toggle'
 import SelectInput from '@/components/SelectInput/SelectInput'
 import PreprocessingControls from '@/components/PreprocessingControls'
+import AnimationControls from '@/components/AnimationControls/AnimationControls'
 import ExportButton from '@/components/ExportButton/ExportButton'
 
 export default function CRTPage () {
@@ -30,6 +32,24 @@ export default function CRTPage () {
   const [redOffsetY, setRedOffsetY] = useState(0)
   const [blueOffsetX, setBlueOffsetX] = useState(-1)
   const [blueOffsetY, setBlueOffsetY] = useState(0)
+
+  const paramDefs = useMemo(() => ({
+    distortion: { value: distortion, set: setDistortion, min: 0, max: 1, step: 0.01 },
+    dotScale: { value: dotScale, set: setDotScale, min: 0.5, max: 5, step: 0.1 },
+    dotPitch: { value: dotPitch, set: setDotPitch, min: 1, max: 10, step: 1 },
+    falloff: { value: falloff, set: setFalloff, min: 0, max: 1, step: 0.01 },
+    glowRadius: { value: glowRadius, set: setGlowRadius, min: 0, max: 10, step: 1 },
+    glowIntensity: { value: glowIntensity, set: setGlowIntensity, min: 0, max: 2, step: 0.01 },
+    bloomThreshold: { value: bloomThreshold, set: setBloomThreshold, min: 0, max: 255, step: 1 },
+    bloomIntensity: { value: bloomIntensity, set: setBloomIntensity, min: 0, max: 2, step: 0.01 },
+    bloomRadius: { value: bloomRadius, set: setBloomRadius, min: 0, max: 20, step: 1 },
+    redOffsetX: { value: redOffsetX, set: setRedOffsetX, min: -10, max: 10, step: 1 },
+    redOffsetY: { value: redOffsetY, set: setRedOffsetY, min: -10, max: 10, step: 1 },
+    blueOffsetX: { value: blueOffsetX, set: setBlueOffsetX, min: -10, max: 10, step: 1 },
+    blueOffsetY: { value: blueOffsetY, set: setBlueOffsetY, min: -10, max: 10, step: 1 }
+  }), [distortion, dotScale, dotPitch, falloff, glowRadius, glowIntensity, bloomThreshold, bloomIntensity, bloomRadius, redOffsetX, redOffsetY, blueOffsetX, blueOffsetY])
+
+  const anim = useAnimation(paramDefs)
 
   const allDeps = [image, showEffect, canvasSize, preprocessing, type, distortion, dotScale, dotPitch, falloff, glowRadius, glowIntensity, bloomMode, bloomThreshold, bloomIntensity, bloomRadius, redOffsetX, redOffsetY, blueOffsetX, blueOffsetY]
   const params = { canvasSize, preprocessing, type, distortion, dotScale, dotPitch, falloff, glowRadius, glowIntensity, bloomMode, bloomThreshold, bloomIntensity, bloomRadius, redOffsetX, redOffsetY, blueOffsetX, blueOffsetY }
@@ -63,6 +83,7 @@ export default function CRTPage () {
         <SliderInput label="redConvergenceOffsetY" value={redOffsetY} onChange={setRedOffsetY} min={-10} max={10} step={1} />
         <SliderInput label="blueConvergenceOffsetX" value={blueOffsetX} onChange={setBlueOffsetX} min={-10} max={10} step={1} />
         <SliderInput label="blueConvergenceOffsetY" value={blueOffsetY} onChange={setBlueOffsetY} min={-10} max={10} step={1} />
+        <AnimationControls {...anim} />
         <ExportButton onExport={useCallback(() => { if (p5Ref.current) p5Ref.current.saveCanvas('crt', 'png') }, [p5Ref])} />
       </ControlPanel>
     </>

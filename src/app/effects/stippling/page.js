@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { useGlobalState } from '@/context/GlobalStateProvider'
 import useP5 from '@/lib/useP5'
+import useAnimation from '@/lib/useAnimation'
 import { createStipplingSketch } from '@/lib/effects/stippling'
 import ControlPanel from '@/components/ControlPanel/ControlPanel'
 import FileUploader from '@/components/FileUploader/FileUploader'
@@ -10,6 +11,7 @@ import SliderInput from '@/components/SliderInput/SliderInput'
 import Toggle from '@/components/Toggle/Toggle'
 import SelectInput from '@/components/SelectInput/SelectInput'
 import PreprocessingControls from '@/components/PreprocessingControls'
+import AnimationControls from '@/components/AnimationControls/AnimationControls'
 import ExportButton from '@/components/ExportButton/ExportButton'
 
 export default function StipplingPage () {
@@ -22,6 +24,17 @@ export default function StipplingPage () {
   const [xSquares, setXSquares] = useState(50)
   const [minSquareWidth, setMinSquareWidth] = useState(1)
   const [maxSquareWidth, setMaxSquareWidth] = useState(10)
+
+  const paramDefs = useMemo(() => ({
+    threshold: { value: threshold, set: setThreshold, min: 0, max: 255, step: 1 },
+    gridAngle: { value: gridAngle, set: setGridAngle, min: 0, max: 360, step: 1 },
+    ySquares: { value: ySquares, set: setYSquares, min: 5, max: 200, step: 1 },
+    xSquares: { value: xSquares, set: setXSquares, min: 5, max: 200, step: 1 },
+    minSquareWidth: { value: minSquareWidth, set: setMinSquareWidth, min: 1, max: 20, step: 1 },
+    maxSquareWidth: { value: maxSquareWidth, set: setMaxSquareWidth, min: 1, max: 30, step: 1 }
+  }), [threshold, gridAngle, ySquares, xSquares, minSquareWidth, maxSquareWidth])
+
+  const anim = useAnimation(paramDefs)
 
   const params = { canvasSize, preprocessing, threshold, gridType, gridAngle, ySquares, xSquares, minSquareWidth, maxSquareWidth }
 
@@ -51,6 +64,7 @@ export default function StipplingPage () {
         <SliderInput label="X Squares" value={xSquares} onChange={setXSquares} min={5} max={200} step={1} />
         <SliderInput label="Min Square Width" value={minSquareWidth} onChange={setMinSquareWidth} min={1} max={20} step={1} />
         <SliderInput label="Max Square Width" value={maxSquareWidth} onChange={setMaxSquareWidth} min={1} max={30} step={1} />
+        <AnimationControls {...anim} />
         <ExportButton onExport={handleExport} />
       </ControlPanel>
     </>

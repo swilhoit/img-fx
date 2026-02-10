@@ -1,14 +1,16 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { useGlobalState } from '@/context/GlobalStateProvider'
 import useP5 from '@/lib/useP5'
+import useAnimation from '@/lib/useAnimation'
 import { createEdgeSketch } from '@/lib/effects/edge'
 import ControlPanel from '@/components/ControlPanel/ControlPanel'
 import FileUploader from '@/components/FileUploader/FileUploader'
 import SliderInput from '@/components/SliderInput/SliderInput'
 import Toggle from '@/components/Toggle/Toggle'
 import PreprocessingControls from '@/components/PreprocessingControls'
+import AnimationControls from '@/components/AnimationControls/AnimationControls'
 import ExportButton from '@/components/ExportButton/ExportButton'
 
 export default function EdgePage () {
@@ -19,6 +21,16 @@ export default function EdgePage () {
   const [maxDotSize, setMaxDotSize] = useState(10)
   const [cornerRadius, setCornerRadius] = useState(0)
   const [stepSize, setStepSize] = useState(4)
+
+  const paramDefs = useMemo(() => ({
+    threshold: { value: threshold, set: setThreshold, min: 0, max: 255, step: 1 },
+    minDotSize: { value: minDotSize, set: setMinDotSize, min: 1, max: 20, step: 1 },
+    maxDotSize: { value: maxDotSize, set: setMaxDotSize, min: 1, max: 30, step: 1 },
+    cornerRadius: { value: cornerRadius, set: setCornerRadius, min: 0, max: 15, step: 1 },
+    stepSize: { value: stepSize, set: setStepSize, min: 2, max: 20, step: 1 }
+  }), [threshold, minDotSize, maxDotSize, cornerRadius, stepSize])
+
+  const anim = useAnimation(paramDefs)
 
   const allDeps = [image, showEffect, canvasSize, preprocessing, threshold, minDotSize, maxDotSize, cornerRadius, stepSize]
   const params = { canvasSize, preprocessing, threshold, minDotSize, maxDotSize, cornerRadius, stepSize }
@@ -42,6 +54,7 @@ export default function EdgePage () {
         <SliderInput label="Max Dot Size" value={maxDotSize} onChange={setMaxDotSize} min={1} max={30} step={1} />
         <SliderInput label="Corner Radius" value={cornerRadius} onChange={setCornerRadius} min={0} max={15} step={1} />
         <SliderInput label="Step Size" value={stepSize} onChange={setStepSize} min={2} max={20} step={1} />
+        <AnimationControls {...anim} />
         <ExportButton onExport={useCallback(() => { if (p5Ref.current) p5Ref.current.saveCanvas('edge', 'png') }, [p5Ref])} />
       </ControlPanel>
     </>

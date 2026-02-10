@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { useGlobalState } from '@/context/GlobalStateProvider'
 import useP5 from '@/lib/useP5'
+import useAnimation from '@/lib/useAnimation'
 import { createGradientsSketch } from '@/lib/effects/gradients'
 import ControlPanel from '@/components/ControlPanel/ControlPanel'
 import FileUploader from '@/components/FileUploader/FileUploader'
@@ -10,6 +11,7 @@ import SliderInput from '@/components/SliderInput/SliderInput'
 import Toggle from '@/components/Toggle/Toggle'
 import SelectInput from '@/components/SelectInput/SelectInput'
 import PreprocessingControls from '@/components/PreprocessingControls'
+import AnimationControls from '@/components/AnimationControls/AnimationControls'
 import ExportButton from '@/components/ExportButton/ExportButton'
 
 export default function GradientsPage () {
@@ -18,6 +20,13 @@ export default function GradientsPage () {
   const [threshold, setThreshold] = useState(128)
   const [stepSize, setStepSize] = useState(8)
   const [shapeType, setShapeType] = useState('rect')
+
+  const paramDefs = useMemo(() => ({
+    threshold: { value: threshold, set: setThreshold, min: 0, max: 255, step: 1 },
+    stepSize: { value: stepSize, set: setStepSize, min: 2, max: 30, step: 1 }
+  }), [threshold, stepSize])
+
+  const anim = useAnimation(paramDefs)
 
   const allDeps = [image, showEffect, canvasSize, preprocessing, threshold, stepSize, shapeType]
   const params = { canvasSize, preprocessing, threshold, stepSize, shapeType }
@@ -39,6 +48,7 @@ export default function GradientsPage () {
         <SliderInput label="Threshold" value={threshold} onChange={setThreshold} min={0} max={255} step={1} />
         <SliderInput label="Step Size" value={stepSize} onChange={setStepSize} min={2} max={30} step={1} />
         <SelectInput label="Shape Type" value={shapeType} onChange={setShapeType} options={['rect', 'ellipse']} />
+        <AnimationControls {...anim} />
         <ExportButton onExport={useCallback(() => { if (p5Ref.current) p5Ref.current.saveCanvas('gradients', 'png') }, [p5Ref])} />
       </ControlPanel>
     </>
