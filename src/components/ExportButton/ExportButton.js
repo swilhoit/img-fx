@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useCallback } from 'react'
-import SliderInput from '@/components/SliderInput/SliderInput'
 import styles from './ExportButton.module.scss'
 
 export default function ExportButton ({ onExport, videoExport, animationEnabled }) {
@@ -29,32 +28,24 @@ export default function ExportButton ({ onExport, videoExport, animationEnabled 
 
       {animationEnabled && videoExport && (
         <div className={styles.video}>
-          <SliderInput
-            label="Duration (s)"
-            value={videoExport.duration}
-            onChange={videoExport.setDuration}
-            min={1} max={30} step={1}
-          />
-          <SliderInput
-            label="FPS"
-            value={videoExport.fps}
-            onChange={videoExport.setFps}
-            min={10} max={60} step={5}
-          />
-
           {videoExport.recording ? (
             <>
               <div className={styles.progress}>
                 <div className={styles.bar} style={{ width: `${videoExport.progress * 100}%` }} />
               </div>
-              <button className={styles.stopBtn} onClick={videoExport.stopRecording}>
+              <button className={styles.stopBtn} onClick={videoExport.stop}>
                 ■ Stop recording
               </button>
             </>
           ) : (
-            <button className={styles.recordBtn} onClick={videoExport.startRecording}>
-              ● Record video
-            </button>
+            <div className={styles.btnRow}>
+              <button className={styles.recordBtn} onClick={() => videoExport.record(5)}>
+                Record 5s .mp4
+              </button>
+              <button className={styles.recordBtn} onClick={() => videoExport.record(10)}>
+                Record 10s .mp4
+              </button>
+            </div>
           )}
         </div>
       )}

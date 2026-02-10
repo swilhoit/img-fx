@@ -9,6 +9,7 @@
     "lint": "next lint --dir src"
   },
   "dependencies": {
+    "mp4-muxer": "^5.2.2",
     "next": "16.1.6",
     "p5": "^1.11.3",
     "react": "19.2.3",
