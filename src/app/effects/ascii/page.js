@@ -25,15 +25,21 @@ export default function ASCIIPage () {
   const [customChars, setCustomChars] = useState('')
   const [invertRamp, setInvertRamp] = useState(false)
   const [showBorders, setShowBorders] = useState(false)
+  const [chaos, setChaos] = useState(0)
+  const [fontSize, setFontSize] = useState(12)
+  const [charSpread, setCharSpread] = useState(0)
 
   const paramDefs = useMemo(() => ({
+    chaos: { value: chaos, set: setChaos, min: 0, max: 1, step: 0.01 },
+    fontSize: { value: fontSize, set: setFontSize, min: 4, max: 32, step: 1 },
+    charSpread: { value: charSpread, set: setCharSpread, min: -1, max: 1, step: 0.01 },
     columns: { value: columns, set: setColumns, min: 10, max: 200, step: 1 },
     rows: { value: rows, set: setRows, min: 5, max: 100, step: 1 }
-  }), [columns, rows])
+  }), [chaos, fontSize, charSpread, columns, rows])
 
-  const anim = useAnimation(paramDefs)
+  const anim = useAnimation(paramDefs, ['columns', 'rows'])
 
-  const renderParams = { canvasSize: 600, bgColor, fgColor, preprocessing, columns, rows, characterSet, customChars, invertRamp, showBorders }
+  const renderParams = { canvasSize: 600, bgColor, fgColor, preprocessing, columns, rows, characterSet, customChars, invertRamp, showBorders, chaos, fontSize, charSpread }
 
   const sketchFactory = useCallback(
     (paramsRef) => createASCIISketch(showEffect ? image : null, paramsRef),
@@ -73,6 +79,9 @@ export default function ASCIIPage () {
             />
           </div>
         )}
+        <SliderInput label="Chaos" value={chaos} onChange={setChaos} min={0} max={1} step={0.01} />
+        <SliderInput label="Font Size" value={fontSize} onChange={setFontSize} min={4} max={32} step={1} />
+        <SliderInput label="Char Spread" value={charSpread} onChange={setCharSpread} min={-1} max={1} step={0.01} />
         <Toggle label="Invert Ramp" checked={invertRamp} onChange={setInvertRamp} />
         <Toggle label="Show Borders" checked={showBorders} onChange={setShowBorders} />
         <ColorControls />
