@@ -7,27 +7,32 @@ export default function useP5 (sketch, deps = []) {
   const p5Ref = useRef(null)
 
   useEffect(() => {
-    let instance = null
+    let cancelled = false
 
     async function init () {
       if (!containerRef.current) return
       const p5Module = await import('p5')
       const p5 = p5Module.default
 
+      if (cancelled) return
+
       if (p5Ref.current) {
         p5Ref.current.remove()
+        p5Ref.current = null
       }
 
-      instance = new p5(sketch, containerRef.current)
+      // Clear any leftover canvases from the container
+      const existing = containerRef.current.querySelectorAll('canvas')
+      existing.forEach(c => c.remove())
+
+      const instance = new p5(sketch, containerRef.current)
       p5Ref.current = instance
     }
 
     init()
 
     return () => {
-      if (instance) {
-        instance.remove()
-      }
+      cancelled = true
       if (p5Ref.current) {
         p5Ref.current.remove()
         p5Ref.current = null
