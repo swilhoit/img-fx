@@ -14,9 +14,10 @@ import PreprocessingControls from '@/components/PreprocessingControls'
 import AnimationControls from '@/components/AnimationControls/AnimationControls'
 import ColorControls from '@/components/ColorControls'
 import ExportButton from '@/components/ExportButton/ExportButton'
+import ImageControls from '@/components/ImageControls'
 
 export default function PatternsPage () {
-  const { image, loadImage, canvasSize, setCanvasSize, showEffect, setShowEffect, bgColor, fgColor } = useGlobalState()
+  const { image, loadImage, canvasSize, setCanvasSize, showEffect, setShowEffect, bgColor, fgColor, imageScale, imageOffsetX, imageOffsetY } = useGlobalState()
   const [preprocessing, setPreprocessing] = useState({ blur: 0, grain: 0, gamma: 1, blackPoint: 0, whitePoint: 255 })
   const [patternImages, setPatternImages] = useState([])
   const [threshold, setThreshold] = useState(128)
@@ -34,7 +35,7 @@ export default function PatternsPage () {
 
   const anim = useAnimation(paramDefs)
 
-  const renderParams = { canvasSize, bgColor, fgColor, preprocessing, threshold, gridDensity }
+  const renderParams = { canvasSize, imageScale, imageOffsetX, imageOffsetY, bgColor, fgColor, preprocessing, threshold, gridDensity }
 
   const sketchFactory = useCallback(
     (paramsRef) => createPatternsSketch(showEffect ? image : null, patternImages, paramsRef),
@@ -52,6 +53,7 @@ export default function PatternsPage () {
         <FileUploader label="Upload patterns" onFile={handlePatternUpload} accept=".jpg,.png" id="patterns" />
         <SliderInput label="Canvas Size" value={canvasSize} onChange={setCanvasSize} min={100} max={1000} step={1} />
         <PreprocessingControls params={preprocessing} onChange={setPreprocessing} />
+        <ImageControls />
         <Toggle label="Show Effect" checked={showEffect} onChange={setShowEffect} />
         <SliderInput label="Threshold" value={threshold} onChange={setThreshold} min={0} max={255} step={1} />
         <SliderInput label="Grid Density" value={gridDensity} onChange={setGridDensity} min={5} max={100} step={1} />

@@ -14,9 +14,10 @@ import PreprocessingControls from '@/components/PreprocessingControls'
 import AnimationControls from '@/components/AnimationControls/AnimationControls'
 import ColorControls from '@/components/ColorControls'
 import ExportButton from '@/components/ExportButton/ExportButton'
+import ImageControls from '@/components/ImageControls'
 
 export default function ScatterPage () {
-  const { image, loadImage, canvasSize, setCanvasSize, showEffect, setShowEffect, bgColor, fgColor } = useGlobalState()
+  const { image, loadImage, canvasSize, setCanvasSize, showEffect, setShowEffect, bgColor, fgColor, imageScale, imageOffsetX, imageOffsetY } = useGlobalState()
   const [preprocessing, setPreprocessing] = useState({ blur: 0, grain: 0, gamma: 1, blackPoint: 0, whitePoint: 255 })
   const [pointDensity, setPointDensity] = useState(0.004)
   const [minDotSize, setMinDotSize] = useState(4)
@@ -34,14 +35,14 @@ export default function ScatterPage () {
 
   const anim = useAnimation(paramDefs)
 
-  const renderParams = { canvasSize, bgColor, fgColor, preprocessing, pointDensity, minDotSize, maxDotSize, relaxIterations, relaxStrength }
+  const renderParams = { canvasSize, imageScale, imageOffsetX, imageOffsetY, bgColor, fgColor, preprocessing, pointDensity, minDotSize, maxDotSize, relaxIterations, relaxStrength }
 
   const sketchFactory = useCallback(
     (paramsRef) => createScatterSketch(showEffect ? image : null, paramsRef),
     [image, showEffect]
   )
 
-  const { containerRef, p5Ref } = useP5(sketchFactory, [image, showEffect, canvasSize, preprocessing], renderParams)
+  const { containerRef, p5Ref } = useP5(sketchFactory, [image, showEffect, canvasSize, preprocessing, imageScale, imageOffsetX, imageOffsetY], renderParams)
   const videoExport = useVideoExport(containerRef)
 
   return (
@@ -51,6 +52,7 @@ export default function ScatterPage () {
         <FileUploader onFile={loadImage} accept=".jpg,.png" />
         <SliderInput label="Canvas Size" value={canvasSize} onChange={setCanvasSize} min={100} max={1000} step={1} />
         <PreprocessingControls params={preprocessing} onChange={setPreprocessing} />
+        <ImageControls />
         <Toggle label="Show Effect" checked={showEffect} onChange={setShowEffect} />
         <SliderInput label="Point Density" value={pointDensity} onChange={setPointDensity} min={0} max={0.2} step={0.001} />
         <SliderInput label="Min Dot Size" value={minDotSize} onChange={setMinDotSize} min={1} max={50} step={1} />

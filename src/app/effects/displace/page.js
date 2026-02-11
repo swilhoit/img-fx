@@ -14,9 +14,10 @@ import PreprocessingControls from '@/components/PreprocessingControls'
 import AnimationControls from '@/components/AnimationControls/AnimationControls'
 import ColorControls from '@/components/ColorControls'
 import ExportButton from '@/components/ExportButton/ExportButton'
+import ImageControls from '@/components/ImageControls'
 
 export default function DisplacePage () {
-  const { image, loadImage, canvasSize, setCanvasSize, showEffect, setShowEffect, bgColor, fgColor } = useGlobalState()
+  const { image, loadImage, canvasSize, setCanvasSize, showEffect, setShowEffect, bgColor, fgColor, imageScale, imageOffsetX, imageOffsetY } = useGlobalState()
   const [preprocessing, setPreprocessing] = useState({ blur: 0, grain: 0, gamma: 1, blackPoint: 0, whitePoint: 255 })
   const [stepSize, setStepSize] = useState(6)
   const [displacement, setDisplacement] = useState(10)
@@ -30,14 +31,14 @@ export default function DisplacePage () {
 
   const anim = useAnimation(paramDefs)
 
-  const renderParams = { canvasSize, bgColor, fgColor, preprocessing, stepSize, displacement, dotSize }
+  const renderParams = { canvasSize, imageScale, imageOffsetX, imageOffsetY, bgColor, fgColor, preprocessing, stepSize, displacement, dotSize }
 
   const sketchFactory = useCallback(
     (paramsRef) => createDisplaceSketch(showEffect ? image : null, paramsRef),
     [image, showEffect]
   )
 
-  const { containerRef, p5Ref } = useP5(sketchFactory, [image, showEffect, canvasSize, preprocessing], renderParams)
+  const { containerRef, p5Ref } = useP5(sketchFactory, [image, showEffect, canvasSize, preprocessing, imageScale, imageOffsetX, imageOffsetY], renderParams)
   const videoExport = useVideoExport(containerRef)
 
   return (
@@ -47,6 +48,7 @@ export default function DisplacePage () {
         <FileUploader onFile={loadImage} accept=".jpg,.png" />
         <SliderInput label="Canvas Size" value={canvasSize} onChange={setCanvasSize} min={100} max={1000} step={1} />
         <PreprocessingControls params={preprocessing} onChange={setPreprocessing} />
+        <ImageControls />
         <Toggle label="Show Effect" checked={showEffect} onChange={setShowEffect} />
         <SliderInput label="Step Size" value={stepSize} onChange={setStepSize} min={2} max={20} step={1} />
         <SliderInput label="Displacement" value={displacement} onChange={setDisplacement} min={0} max={50} step={1} />

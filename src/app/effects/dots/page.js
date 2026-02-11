@@ -15,9 +15,10 @@ import PreprocessingControls from '@/components/PreprocessingControls'
 import AnimationControls from '@/components/AnimationControls/AnimationControls'
 import ColorControls from '@/components/ColorControls'
 import ExportButton from '@/components/ExportButton/ExportButton'
+import ImageControls from '@/components/ImageControls'
 
 export default function DotsPage () {
-  const { image, loadImage, canvasSize, setCanvasSize, showEffect, setShowEffect, bgColor, fgColor } = useGlobalState()
+  const { image, loadImage, canvasSize, setCanvasSize, showEffect, setShowEffect, bgColor, fgColor, imageScale, imageOffsetX, imageOffsetY } = useGlobalState()
   const [preprocessing, setPreprocessing] = useState({ blur: 0, grain: 0, gamma: 1, blackPoint: 0, whitePoint: 255 })
   const [threshold, setThreshold] = useState(128)
   const [gridType, setGridType] = useState('Regular')
@@ -40,14 +41,14 @@ export default function DotsPage () {
 
   const anim = useAnimation(paramDefs)
 
-  const renderParams = { canvasSize, bgColor, fgColor, preprocessing, threshold, gridType, gridAngle, minDotSize, maxDotSize, cornerRadius, stepSize, noise }
+  const renderParams = { canvasSize, imageScale, imageOffsetX, imageOffsetY, bgColor, fgColor, preprocessing, threshold, gridType, gridAngle, minDotSize, maxDotSize, cornerRadius, stepSize, noise }
 
   const sketchFactory = useCallback(
     (paramsRef) => createDotsSketch(showEffect ? image : null, paramsRef),
     [image, showEffect]
   )
 
-  const { containerRef, p5Ref } = useP5(sketchFactory, [image, showEffect, canvasSize, preprocessing], renderParams)
+  const { containerRef, p5Ref } = useP5(sketchFactory, [image, showEffect, canvasSize, preprocessing, imageScale, imageOffsetX, imageOffsetY], renderParams)
   const videoExport = useVideoExport(containerRef)
 
   const handleExport = useCallback(() => {
@@ -61,6 +62,7 @@ export default function DotsPage () {
         <FileUploader onFile={loadImage} accept=".jpg,.png,.mp4" />
         <SliderInput label="Canvas Size" value={canvasSize} onChange={setCanvasSize} min={100} max={1000} step={1} />
         <PreprocessingControls params={preprocessing} onChange={setPreprocessing} />
+        <ImageControls />
         <Toggle label="Show Effect" checked={showEffect} onChange={setShowEffect} />
         <SliderInput label="Threshold" value={threshold} onChange={setThreshold} min={0} max={255} step={1} />
         <SelectInput label="Grid Type" value={gridType} onChange={setGridType} options={['Regular', 'Benday']} />

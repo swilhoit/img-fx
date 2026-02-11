@@ -76,7 +76,7 @@ export function hexToRgb (hex) {
   ]
 }
 
-export function resizeImageData (img, targetSize) {
+export function resizeImageData (img, targetSize, scale = 100, offsetX = 0, offsetY = 0) {
   const canvas = document.createElement('canvas')
   const ratio = img.width / img.height
   let w, h
@@ -90,6 +90,13 @@ export function resizeImageData (img, targetSize) {
   canvas.width = w
   canvas.height = h
   const ctx = canvas.getContext('2d')
-  ctx.drawImage(img, 0, 0, w, h)
+
+  const s = scale / 100
+  const sw = w / s
+  const sh = h / s
+  const sx = (img.width - sw) / 2 - (offsetX / 100) * img.width
+  const sy = (img.height - sh) / 2 - (offsetY / 100) * img.height
+  ctx.drawImage(img, sx, sy, sw, sh, 0, 0, w, h)
+
   return { imageData: ctx.getImageData(0, 0, w, h), width: w, height: h }
 }

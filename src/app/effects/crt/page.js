@@ -15,9 +15,10 @@ import PreprocessingControls from '@/components/PreprocessingControls'
 import AnimationControls from '@/components/AnimationControls/AnimationControls'
 import ColorControls from '@/components/ColorControls'
 import ExportButton from '@/components/ExportButton/ExportButton'
+import ImageControls from '@/components/ImageControls'
 
 export default function CRTPage () {
-  const { image, loadImage, canvasSize, setCanvasSize, showEffect, setShowEffect, bgColor, fgColor } = useGlobalState()
+  const { image, loadImage, canvasSize, setCanvasSize, showEffect, setShowEffect, bgColor, fgColor, imageScale, imageOffsetX, imageOffsetY } = useGlobalState()
   const [preprocessing, setPreprocessing] = useState({ blur: 0, grain: 0, gamma: 1, blackPoint: 0, whitePoint: 255 })
   const [type, setType] = useState('Monitor')
   const [distortion, setDistortion] = useState(0.1)
@@ -53,14 +54,14 @@ export default function CRTPage () {
 
   const anim = useAnimation(paramDefs)
 
-  const renderParams = { canvasSize, bgColor, fgColor, preprocessing, type, distortion, dotScale, dotPitch, falloff, glowRadius, glowIntensity, bloomMode, bloomThreshold, bloomIntensity, bloomRadius, redOffsetX, redOffsetY, blueOffsetX, blueOffsetY }
+  const renderParams = { canvasSize, imageScale, imageOffsetX, imageOffsetY, bgColor, fgColor, preprocessing, type, distortion, dotScale, dotPitch, falloff, glowRadius, glowIntensity, bloomMode, bloomThreshold, bloomIntensity, bloomRadius, redOffsetX, redOffsetY, blueOffsetX, blueOffsetY }
 
   const sketchFactory = useCallback(
     (paramsRef) => createCRTSketch(showEffect ? image : null, paramsRef),
     [image, showEffect]
   )
 
-  const { containerRef, p5Ref } = useP5(sketchFactory, [image, showEffect, canvasSize, preprocessing], renderParams)
+  const { containerRef, p5Ref } = useP5(sketchFactory, [image, showEffect, canvasSize, preprocessing, imageScale, imageOffsetX, imageOffsetY], renderParams)
   const videoExport = useVideoExport(containerRef)
 
   return (
@@ -70,6 +71,7 @@ export default function CRTPage () {
         <FileUploader onFile={loadImage} accept=".jpg,.png" />
         <SliderInput label="Canvas Size" value={canvasSize} onChange={setCanvasSize} min={100} max={1000} step={1} />
         <PreprocessingControls params={preprocessing} onChange={setPreprocessing} />
+        <ImageControls />
         <Toggle label="Show Effect" checked={showEffect} onChange={setShowEffect} />
         <SelectInput label="Type" value={type} onChange={setType} options={['Monitor', 'TV', 'LCD']} />
         <SliderInput label="distortion" value={distortion} onChange={setDistortion} min={0} max={1} step={0.01} />

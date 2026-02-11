@@ -13,7 +13,7 @@ export function createDitheringSketch (image, paramsRef) {
         p.background(bg[0], bg[1], bg[2])
         return
       }
-      const { imageData, width, height } = resizeImageData(image, params.canvasSize)
+      const { imageData, width, height } = resizeImageData(image, params.canvasSize, params.imageScale, params.imageOffsetX, params.imageOffsetY)
       p.createCanvas(width, height)
       imgData = applyPreprocessing(imageData.data, width, height, params.preprocessing)
       imgW = width

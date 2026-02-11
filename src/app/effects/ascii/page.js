@@ -15,9 +15,10 @@ import PreprocessingControls from '@/components/PreprocessingControls'
 import AnimationControls from '@/components/AnimationControls/AnimationControls'
 import ColorControls from '@/components/ColorControls'
 import ExportButton from '@/components/ExportButton/ExportButton'
+import ImageControls from '@/components/ImageControls'
 
 export default function ASCIIPage () {
-  const { image, loadImage, showEffect, setShowEffect, bgColor, fgColor } = useGlobalState()
+  const { image, loadImage, showEffect, setShowEffect, bgColor, fgColor, imageScale, imageOffsetX, imageOffsetY } = useGlobalState()
   const [preprocessing, setPreprocessing] = useState({ blur: 0, grain: 0, gamma: 1, blackPoint: 0, whitePoint: 255 })
   const [columns, setColumns] = useState(80)
   const [rows, setRows] = useState(40)
@@ -43,14 +44,14 @@ export default function ASCIIPage () {
 
   const anim = useAnimation(paramDefs, ['columns', 'rows'])
 
-  const renderParams = { canvasSize: 600, bgColor, fgColor, preprocessing, columns, rows, characterSet, customChars, invertRamp, showBorders, drift, jitter, wave, fontSize, brightness }
+  const renderParams = { canvasSize: 600, imageScale, imageOffsetX, imageOffsetY, bgColor, fgColor, preprocessing, columns, rows, characterSet, customChars, invertRamp, showBorders, drift, jitter, wave, fontSize, brightness }
 
   const sketchFactory = useCallback(
     (paramsRef) => createASCIISketch(showEffect ? image : null, paramsRef),
     [image, showEffect]
   )
 
-  const { containerRef, p5Ref } = useP5(sketchFactory, [image, showEffect, preprocessing], renderParams)
+  const { containerRef, p5Ref } = useP5(sketchFactory, [image, showEffect, preprocessing, imageScale, imageOffsetX, imageOffsetY], renderParams)
   const videoExport = useVideoExport(containerRef)
 
   return (
@@ -59,6 +60,7 @@ export default function ASCIIPage () {
       <ControlPanel>
         <FileUploader onFile={loadImage} accept=".jpg,.png" />
         <PreprocessingControls params={preprocessing} onChange={setPreprocessing} />
+        <ImageControls />
         <SliderInput label="Columns" value={columns} onChange={setColumns} min={10} max={200} step={1} />
         <SliderInput label="Rows" value={rows} onChange={setRows} min={5} max={100} step={1} />
         <SelectInput label="Character Set" value={characterSet} onChange={setCharacterSet} options={['standard', 'blocks', 'simple', 'detailed', 'custom']} />

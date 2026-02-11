@@ -17,7 +17,7 @@ export function createASCIISketch (image, paramsRef) {
       }
 
       const params = paramsRef.current
-      const { imageData, width, height } = resizeImageData(image, Math.max(maxCols, maxRows))
+      const { imageData, width, height } = resizeImageData(image, Math.max(maxCols, maxRows), params.imageScale, params.imageOffsetX, params.imageOffsetY)
       const pre = applyPreprocessing(imageData.data, width, height, params.preprocessing)
       processed = { data: pre, width, height }
     }

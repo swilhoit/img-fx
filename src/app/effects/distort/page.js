@@ -14,9 +14,10 @@ import PreprocessingControls from '@/components/PreprocessingControls'
 import AnimationControls from '@/components/AnimationControls/AnimationControls'
 import ColorControls from '@/components/ColorControls'
 import ExportButton from '@/components/ExportButton/ExportButton'
+import ImageControls from '@/components/ImageControls'
 
 export default function DistortPage () {
-  const { image, loadImage, canvasSize, setCanvasSize, showEffect, setShowEffect, bgColor, fgColor } = useGlobalState()
+  const { image, loadImage, canvasSize, setCanvasSize, showEffect, setShowEffect, bgColor, fgColor, imageScale, imageOffsetX, imageOffsetY } = useGlobalState()
   const [preprocessing, setPreprocessing] = useState({ blur: 0, grain: 0, gamma: 1, blackPoint: 0, whitePoint: 255 })
   const [distortionMap, setDistortionMap] = useState(null)
   const [threshold, setThreshold] = useState(128)
@@ -38,7 +39,7 @@ export default function DistortPage () {
 
   const anim = useAnimation(paramDefs)
 
-  const renderParams = { canvasSize, bgColor, fgColor, preprocessing, threshold, xShift, yShift }
+  const renderParams = { canvasSize, imageScale, imageOffsetX, imageOffsetY, bgColor, fgColor, preprocessing, threshold, xShift, yShift }
 
   const sketchFactory = useCallback(
     (paramsRef) => createDistortSketch(showEffect ? image : null, distortionMap, paramsRef),
@@ -56,6 +57,7 @@ export default function DistortPage () {
         <FileUploader label="Distortion map" onFile={handleMapUpload} accept=".jpg,.png" id="distortion-map" />
         <SliderInput label="Canvas Size" value={canvasSize} onChange={setCanvasSize} min={100} max={1000} step={1} />
         <PreprocessingControls params={preprocessing} onChange={setPreprocessing} />
+        <ImageControls />
         <Toggle label="Show Effect" checked={showEffect} onChange={setShowEffect} />
         <SliderInput label="Threshold" value={threshold} onChange={setThreshold} min={0} max={255} step={1} />
         <SliderInput label="X Shift Strength" value={xShift} onChange={setXShift} min={0} max={100} step={1} />

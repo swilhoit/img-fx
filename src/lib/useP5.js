@@ -6,8 +6,6 @@ import { useEffect, useRef } from 'react'
  * Hook for p5 instance mode with support for animated parameters.
  *
  * @param {Function} sketchFactory - (paramsRef) => (p) => { p.setup, p.draw }
- *   Receives a ref to the current render params. Sketch should read
- *   paramsRef.current in draw() for smooth animation.
  * @param {Array} structuralDeps - deps that require full p5 re-init (image, canvasSize, showEffect)
  * @param {Object} renderParams - params object updated every render (sliders, colors etc.)
  */
@@ -19,6 +17,7 @@ export default function useP5 (sketchFactory, structuralDeps, renderParams) {
 
   useEffect(() => {
     let cancelled = false
+    let instance = null
 
     async function init () {
       if (!containerRef.current) return
@@ -27,15 +26,19 @@ export default function useP5 (sketchFactory, structuralDeps, renderParams) {
 
       if (cancelled) return
 
+      // Destroy previous instance
       if (p5Ref.current) {
         p5Ref.current.remove()
         p5Ref.current = null
       }
 
+      // Remove ALL canvases from container before creating new one
       const existing = containerRef.current.querySelectorAll('canvas')
       existing.forEach(c => c.remove())
 
-      const instance = new p5(sketchFactory(paramsRef), containerRef.current)
+      if (cancelled) return
+
+      instance = new p5(sketchFactory(paramsRef), containerRef.current)
       p5Ref.current = instance
     }
 
@@ -43,9 +46,18 @@ export default function useP5 (sketchFactory, structuralDeps, renderParams) {
 
     return () => {
       cancelled = true
+      if (instance) {
+        instance.remove()
+        instance = null
+      }
       if (p5Ref.current) {
         p5Ref.current.remove()
         p5Ref.current = null
+      }
+      // Final sweep: remove any canvases left behind
+      if (containerRef.current) {
+        const leftover = containerRef.current.querySelectorAll('canvas')
+        leftover.forEach(c => c.remove())
       }
     }
   }, structuralDeps) // eslint-disable-line react-hooks/exhaustive-deps

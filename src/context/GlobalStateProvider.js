@@ -11,6 +11,9 @@ export function GlobalStateProvider ({ children }) {
   const [showEffect, setShowEffect] = useState(true)
   const [bgColor, setBgColor] = useState('#ffffff')
   const [fgColor, setFgColor] = useState('#000000')
+  const [imageScale, setImageScale] = useState(100)
+  const [imageOffsetX, setImageOffsetX] = useState(0)
+  const [imageOffsetY, setImageOffsetY] = useState(0)
 
   const loadImage = useCallback((file) => {
     if (!file) return
@@ -34,7 +37,10 @@ export function GlobalStateProvider ({ children }) {
       canvasSize, setCanvasSize,
       showEffect, setShowEffect,
       bgColor, setBgColor,
-      fgColor, setFgColor
+      fgColor, setFgColor,
+      imageScale, setImageScale,
+      imageOffsetX, setImageOffsetX,
+      imageOffsetY, setImageOffsetY
     }}>
       {children}
     </GlobalStateContext.Provider>
