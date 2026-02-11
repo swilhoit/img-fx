@@ -36,6 +36,7 @@ function render (p, data, width, height, params) {
     redOffsetX = 1, redOffsetY = 0, blueOffsetX = -1, blueOffsetY = 0
   } = params
 
+  p.background(0)
   p.loadPixels()
 
   for (let y = 0; y < height; y++) {

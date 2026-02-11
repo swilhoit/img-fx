@@ -40,6 +40,7 @@ function render (p, data, width, height, params) {
 
   const sortedStops = [...stops].sort((a, b) => a.position - b.position)
 
+  p.background(0)
   p.loadPixels()
 
   for (let y = 0; y < height; y++) {

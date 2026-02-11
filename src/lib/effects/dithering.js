@@ -52,6 +52,7 @@ function render (p, data, width, height, params) {
     randomDither(gray, width, height, threshold)
   }
 
+  p.background(bg[0], bg[1], bg[2])
   p.loadPixels()
   const ps = Math.max(1, Math.round(pixelSize))
 

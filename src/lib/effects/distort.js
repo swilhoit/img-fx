@@ -37,6 +37,7 @@ function render (p, data, width, height, params, mapData) {
   const { threshold = 128, xShift = 20, yShift = 20 } = params
   const bg = hexToRgb(params.bgColor)
 
+  p.background(bg[0], bg[1], bg[2])
   p.loadPixels()
 
   for (let y = 0; y < height; y++) {

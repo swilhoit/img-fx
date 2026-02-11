@@ -41,6 +41,7 @@ function render (p, gray, width, height, params) {
   const lx = Math.cos(rad)
   const ly = Math.sin(rad)
 
+  p.background(bg[0], bg[1], bg[2])
   p.loadPixels()
 
   for (let y = 1; y < height - 1; y++) {
