@@ -35,31 +35,64 @@ const BAYER_4 = [
   [15, 7, 13, 5]
 ]
 
+function ditherChannel (values, w, h, pattern, threshold) {
+  const out = new Float32Array(values)
+  if (pattern === 'F-S') {
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const idx = y * w + x
+        const old = out[idx]
+        const val = old > threshold ? 255 : 0
+        out[idx] = val
+        const err = old - val
+        if (x + 1 < w) out[idx + 1] += err * 7 / 16
+        if (y + 1 < h) {
+          if (x - 1 >= 0) out[(y + 1) * w + x - 1] += err * 3 / 16
+          out[(y + 1) * w + x] += err * 5 / 16
+          if (x + 1 < w) out[(y + 1) * w + x + 1] += err * 1 / 16
+        }
+      }
+    }
+  } else if (pattern === 'Bayer') {
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const t = (BAYER_4[y % 4][x % 4] / 16) * 255
+        out[y * w + x] = out[y * w + x] > t ? 255 : 0
+      }
+    }
+  } else {
+    for (let i = 0; i < w * h; i++) {
+      const t = threshold + (Math.random() - 0.5) * 128
+      out[i] = out[i] > t ? 255 : 0
+    }
+  }
+  return out
+}
+
 function render (p, data, width, height, params) {
   const { pattern = 'F-S', pixelSize = 1, colorMode = 'BW', threshold = 128 } = params
   const bg = hexToRgb(params.bgColor)
   const fg = hexToRgb(params.fgColor)
+  const ps = Math.max(1, Math.round(pixelSize))
+
+  if (colorMode === 'Full Color' || colorMode === 'Halftone') {
+    renderColor(p, data, width, height, pattern, threshold, ps, bg, colorMode)
+    return
+  }
 
   const gray = new Float32Array(width * height)
   for (let i = 0; i < width * height; i++) {
     gray[i] = getGrayscale(data[i * 4], data[i * 4 + 1], data[i * 4 + 2])
   }
 
-  if (pattern === 'F-S') {
-    floydSteinberg(gray, width, height, threshold)
-  } else if (pattern === 'Bayer') {
-    bayer(gray, width, height)
-  } else {
-    randomDither(gray, width, height, threshold)
-  }
+  const dithered = ditherChannel(gray, width, height, pattern, threshold)
 
   p.background(bg[0], bg[1], bg[2])
   p.loadPixels()
-  const ps = Math.max(1, Math.round(pixelSize))
 
   for (let y = 0; y < height; y += ps) {
     for (let x = 0; x < width; x += ps) {
-      const isLight = gray[y * width + x] > 127
+      const isLight = dithered[y * width + x] > 127
 
       for (let dy = 0; dy < ps && y + dy < height; dy++) {
         for (let dx = 0; dx < ps && x + dx < width; dx++) {
@@ -89,37 +122,52 @@ function render (p, data, width, height, params) {
   p.updatePixels()
 }
 
-function floydSteinberg (gray, w, h, threshold) {
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      const idx = y * w + x
-      const old = gray[idx]
-      const val = old > threshold ? 255 : 0
-      gray[idx] = val
-      const err = old - val
-      if (x + 1 < w) gray[idx + 1] += err * 7 / 16
-      if (y + 1 < h) {
-        if (x - 1 >= 0) gray[(y + 1) * w + x - 1] += err * 3 / 16
-        gray[(y + 1) * w + x] += err * 5 / 16
-        if (x + 1 < w) gray[(y + 1) * w + x + 1] += err * 1 / 16
+function renderColor (p, data, width, height, pattern, threshold, ps, bg, mode) {
+  // Extract per-channel arrays
+  const rCh = new Float32Array(width * height)
+  const gCh = new Float32Array(width * height)
+  const bCh = new Float32Array(width * height)
+  for (let i = 0; i < width * height; i++) {
+    rCh[i] = data[i * 4]
+    gCh[i] = data[i * 4 + 1]
+    bCh[i] = data[i * 4 + 2]
+  }
+
+  // Dither each channel independently
+  const rD = ditherChannel(rCh, width, height, pattern, threshold)
+  const gD = ditherChannel(gCh, width, height, pattern, threshold)
+  const bD = ditherChannel(bCh, width, height, pattern, threshold)
+
+  p.background(bg[0], bg[1], bg[2])
+  p.loadPixels()
+
+  for (let y = 0; y < height; y += ps) {
+    for (let x = 0; x < width; x += ps) {
+      const si = y * width + x
+
+      let r, g, b
+      if (mode === 'Full Color') {
+        // Dithered channels preserve original color relationships
+        r = rD[si]
+        g = gD[si]
+        b = bD[si]
+      } else {
+        // Halftone: each channel is strictly 0 or 255 (CMY-style)
+        r = rD[si] > 127 ? 255 : 0
+        g = gD[si] > 127 ? 255 : 0
+        b = bD[si] > 127 ? 255 : 0
+      }
+
+      for (let dy = 0; dy < ps && y + dy < height; dy++) {
+        for (let dx = 0; dx < ps && x + dx < width; dx++) {
+          const idx = ((y + dy) * width + (x + dx)) * 4
+          p.pixels[idx] = r
+          p.pixels[idx + 1] = g
+          p.pixels[idx + 2] = b
+          p.pixels[idx + 3] = 255
+        }
       }
     }
   }
-}
-
-function bayer (gray, w, h) {
-  const n = 4
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      const threshold = (BAYER_4[y % n][x % n] / 16) * 255
-      gray[y * w + x] = gray[y * w + x] > threshold ? 255 : 0
-    }
-  }
-}
-
-function randomDither (gray, w, h, threshold) {
-  for (let i = 0; i < w * h; i++) {
-    const t = threshold + (Math.random() - 0.5) * 128
-    gray[i] = gray[i] > t ? 255 : 0
-  }
+  p.updatePixels()
 }

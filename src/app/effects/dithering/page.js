@@ -57,7 +57,7 @@ export default function DitheringPage () {
         <Toggle label="Show Effect" checked={showEffect} onChange={setShowEffect} />
         <SelectInput label="Pattern" value={pattern} onChange={setPattern} options={['F-S', 'Bayer', 'Random']} />
         <SliderInput label="Pixel Size" value={pixelSize} onChange={setPixelSize} min={1} max={10} step={1} />
-        <SelectInput label="Color Mode" value={colorMode} onChange={setColorMode} options={['BW', 'Color']} />
+        <SelectInput label="Color Mode" value={colorMode} onChange={setColorMode} options={['BW', 'Full Color', 'Halftone']} />
         <SliderInput label="Threshold" value={threshold} onChange={setThreshold} min={0} max={255} step={1} />
         <ColorControls />
         <AnimationControls {...anim} />
