@@ -6,6 +6,7 @@ export function createASCIISketch (image, paramsRef) {
     let frameCount = 0
 
     p.setup = () => {
+      p.pixelDensity(1)
       const maxCols = 200
       const maxRows = 100
       p.createCanvas(maxCols * 7, maxRows * 14)

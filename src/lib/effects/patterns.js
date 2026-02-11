@@ -12,6 +12,7 @@ export function createPatternsSketch (image, patternImages, paramsRef) {
     }
 
     p.setup = () => {
+      p.pixelDensity(1)
       const params = paramsRef.current
       if (!image) {
         p.createCanvas(params.canvasSize, params.canvasSize)

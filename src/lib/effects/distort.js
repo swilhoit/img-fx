@@ -7,6 +7,7 @@ export function createDistortSketch (image, distortionMap, paramsRef) {
     let imgW = 0, imgH = 0
 
     p.setup = () => {
+      p.pixelDensity(1)
       const params = paramsRef.current
       if (!image) {
         p.createCanvas(params.canvasSize, params.canvasSize)

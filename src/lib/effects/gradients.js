@@ -5,6 +5,7 @@ export function createGradientsSketch (image, paramsRef) {
     let processed = null
 
     p.setup = () => {
+      p.pixelDensity(1)
       const params = paramsRef.current
       if (!image) {
         p.createCanvas(params.canvasSize, params.canvasSize)
