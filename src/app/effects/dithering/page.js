@@ -21,18 +21,24 @@ export default function DitheringPage () {
   const { image, loadImage, canvasSize, setCanvasSize, showEffect, setShowEffect, bgColor, fgColor, imageScale, imageOffsetX, imageOffsetY } = useGlobalState()
   const [preprocessing, setPreprocessing] = useState({ blur: 0, grain: 0, gamma: 1, blackPoint: 0, whitePoint: 255 })
   const [pattern, setPattern] = useState('F-S')
-  const [pixelSize, setPixelSize] = useState(1)
   const [colorMode, setColorMode] = useState('BW')
+  const [colorCount, setColorCount] = useState(2)
+  const [distanceMode, setDistanceMode] = useState(0)
+  const [ditherStrength, setDitherStrength] = useState(1)
   const [threshold, setThreshold] = useState(128)
+  const [pixelStep, setPixelStep] = useState(1)
 
   const paramDefs = useMemo(() => ({
-    pixelSize: { value: pixelSize, set: setPixelSize, min: 1, max: 10, step: 1 },
-    threshold: { value: threshold, set: setThreshold, min: 0, max: 255, step: 1 }
-  }), [pixelSize, threshold])
+    colorCount: { value: colorCount, set: setColorCount, min: 2, max: 64, step: 1 },
+    distanceMode: { value: distanceMode, set: setDistanceMode, min: 0, max: 2, step: 1 },
+    ditherStrength: { value: ditherStrength, set: setDitherStrength, min: 0, max: 3, step: 0.1 },
+    threshold: { value: threshold, set: setThreshold, min: 0, max: 255, step: 1 },
+    pixelStep: { value: pixelStep, set: setPixelStep, min: 1, max: 10, step: 1 }
+  }), [colorCount, distanceMode, ditherStrength, threshold, pixelStep])
 
   const anim = useAnimation(paramDefs)
 
-  const renderParams = { canvasSize, imageScale, imageOffsetX, imageOffsetY, bgColor, fgColor, preprocessing, pattern, pixelSize, colorMode, threshold }
+  const renderParams = { canvasSize, imageScale, imageOffsetX, imageOffsetY, bgColor, fgColor, preprocessing, pattern, colorMode, colorCount, distanceMode, ditherStrength, threshold, pixelStep }
 
   const sketchFactory = useCallback(
     (paramsRef) => createDitheringSketch(showEffect ? image : null, paramsRef),
@@ -55,10 +61,13 @@ export default function DitheringPage () {
         <PreprocessingControls params={preprocessing} onChange={setPreprocessing} />
         <ImageControls />
         <Toggle label="Show Effect" checked={showEffect} onChange={setShowEffect} />
-        <SelectInput label="Pattern" value={pattern} onChange={setPattern} options={['F-S', 'Bayer', 'Random']} />
-        <SliderInput label="Pixel Size" value={pixelSize} onChange={setPixelSize} min={1} max={10} step={1} />
-        <SelectInput label="Color Mode" value={colorMode} onChange={setColorMode} options={['BW', 'Full Color', 'Halftone']} />
+        <SelectInput label="Pattern Type" value={pattern} onChange={setPattern} options={['F-S', 'Bayer', 'Random']} />
+        <SelectInput label="Palette Type" value={colorMode} onChange={setColorMode} options={['BW', 'Full Color', 'Halftone']} />
+        <SliderInput label="Color Count" value={colorCount} onChange={setColorCount} min={2} max={64} step={1} />
+        <SliderInput label="Distance Mode" value={distanceMode} onChange={setDistanceMode} min={0} max={2} step={1} />
+        <SliderInput label="Dither Strength" value={ditherStrength} onChange={setDitherStrength} min={0} max={3} step={0.1} />
         <SliderInput label="Threshold" value={threshold} onChange={setThreshold} min={0} max={255} step={1} />
+        <SliderInput label="Pixel Step" value={pixelStep} onChange={setPixelStep} min={1} max={10} step={1} />
         <ColorControls />
         <AnimationControls {...anim} />
         <ExportButton onExport={handleExport} videoExport={videoExport} animationEnabled={anim.enabled} />
