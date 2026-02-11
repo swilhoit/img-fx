@@ -16,6 +16,7 @@ import AnimationControls from '@/components/AnimationControls/AnimationControls'
 import ColorControls from '@/components/ColorControls'
 import ExportButton from '@/components/ExportButton/ExportButton'
 import ImageControls from '@/components/ImageControls'
+import PaletteEditor from '@/components/PaletteEditor/PaletteEditor'
 
 export default function DitheringPage () {
   const { image, loadImage, canvasSize, setCanvasSize, showEffect, setShowEffect, bgColor, fgColor, imageScale, imageOffsetX, imageOffsetY } = useGlobalState()
@@ -27,6 +28,7 @@ export default function DitheringPage () {
   const [ditherStrength, setDitherStrength] = useState(1)
   const [threshold, setThreshold] = useState(128)
   const [pixelStep, setPixelStep] = useState(1)
+  const [paletteColors, setPaletteColors] = useState(['#000000', '#ffffff'])
 
   const paramDefs = useMemo(() => ({
     colorCount: { value: colorCount, set: setColorCount, min: 2, max: 64, step: 1 },
@@ -38,7 +40,7 @@ export default function DitheringPage () {
 
   const anim = useAnimation(paramDefs)
 
-  const renderParams = { canvasSize, imageScale, imageOffsetX, imageOffsetY, bgColor, fgColor, preprocessing, pattern, colorMode, colorCount, distanceMode, ditherStrength, threshold, pixelStep }
+  const renderParams = { canvasSize, imageScale, imageOffsetX, imageOffsetY, bgColor, fgColor, preprocessing, pattern, colorMode, colorCount, distanceMode, ditherStrength, threshold, pixelStep, paletteColors }
 
   const sketchFactory = useCallback(
     (paramsRef) => createDitheringSketch(showEffect ? image : null, paramsRef),
@@ -64,6 +66,7 @@ export default function DitheringPage () {
         <SelectInput label="Pattern Type" value={pattern} onChange={setPattern} options={['F-S', 'Bayer', 'Random']} />
         <SelectInput label="Palette Type" value={colorMode} onChange={setColorMode} options={['BW', 'Full Color', 'Halftone']} />
         <SliderInput label="Color Count" value={colorCount} onChange={setColorCount} min={2} max={64} step={1} />
+        <PaletteEditor colors={paletteColors} onChange={setPaletteColors} />
         <SliderInput label="Distance Mode" value={distanceMode} onChange={setDistanceMode} min={0} max={2} step={1} />
         <SliderInput label="Dither Strength" value={ditherStrength} onChange={setDitherStrength} min={0} max={3} step={0.1} />
         <SliderInput label="Threshold" value={threshold} onChange={setThreshold} min={0} max={255} step={1} />

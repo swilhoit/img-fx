@@ -1,0 +1,87 @@
+.wrapper {
+  padding: 4px 0;
+}
+
+.label {
+  color: var(--text-label);
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+.swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+
+.swatch {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+  cursor: pointer;
+  padding: 2px;
+  background: none;
+  position: relative;
+  flex-shrink: 0;
+
+  &::-webkit-color-swatch-wrapper {
+    padding: 0;
+  }
+
+  &::-webkit-color-swatch {
+    border: none;
+    border-radius: 2px;
+  }
+
+  &::-moz-color-swatch {
+    border: none;
+    border-radius: 2px;
+  }
+}
+
+.remove {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-light);
+  color: var(--text-dim);
+  font-size: 9px;
+  line-height: 12px;
+  text-align: center;
+  cursor: pointer;
+  padding: 0;
+  display: none;
+
+  .swatchWrap:hover & {
+    display: block;
+  }
+}
+
+.swatchWrap {
+  position: relative;
+}
+
+.addBtn {
+  width: 28px;
+  height: 28px;
+  border: 1px dashed var(--border-light);
+  border-radius: var(--radius);
+  background: none;
+  color: var(--text-dim);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    border-color: var(--text-label);
+    color: var(--text-label);
+  }
+}

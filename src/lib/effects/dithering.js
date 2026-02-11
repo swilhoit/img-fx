@@ -119,7 +119,8 @@ function ditherChannel (values, w, h, pattern, threshold, strength) {
 function render (p, data, width, height, params) {
   const {
     pattern = 'F-S', pixelStep = 1, colorMode = 'BW', threshold = 128,
-    colorCount = 2, distanceMode = 0, ditherStrength = 1
+    colorCount = 2, distanceMode = 0, ditherStrength = 1,
+    paletteColors = null
   } = params
   const bg = hexToRgb(params.bgColor)
   const fg = hexToRgb(params.fgColor)
@@ -132,13 +133,14 @@ function render (p, data, width, height, params) {
     return
   }
 
-  const palette = generatePalette(colorCount, bg, fg)
-  const usePalette = colorCount > 2
+  const palette = paletteColors && paletteColors.length >= 2
+    ? paletteColors.map(c => hexToRgb(c))
+    : generatePalette(colorCount, bg, fg)
 
-  if (usePalette) {
+  if (palette.length > 2) {
     renderPalette(p, data, width, height, pattern, threshold, ps, palette, distFn, strength)
   } else {
-    renderBW(p, data, width, height, pattern, threshold, ps, bg, fg, strength)
+    renderBW(p, data, width, height, pattern, threshold, ps, palette[0], palette[1], strength)
   }
 }
 
