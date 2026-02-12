@@ -21,6 +21,7 @@ export function GlobalStateProvider ({ children }) {
     const img = new Image()
     img.onload = () => {
       setImage(img)
+      setCanvasSize(Math.min(800, Math.max(img.width, img.height)))
       const canvas = document.createElement('canvas')
       canvas.width = img.width
       canvas.height = img.height

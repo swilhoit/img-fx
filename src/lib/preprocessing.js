@@ -78,26 +78,26 @@ export function hexToRgb (hex) {
 
 export function resizeImageData (img, targetSize, scale = 100, offsetX = 0, offsetY = 0) {
   const canvas = document.createElement('canvas')
-  canvas.width = targetSize
-  canvas.height = targetSize
+  const ratio = img.width / img.height
+  let w, h
+  if (ratio >= 1) {
+    w = targetSize
+    h = Math.round(targetSize / ratio)
+  } else {
+    h = targetSize
+    w = Math.round(targetSize * ratio)
+  }
+  canvas.width = w
+  canvas.height = h
   const ctx = canvas.getContext('2d')
 
-  // Fit image to cover the canvas (contain), then apply scale and offset
   const s = scale / 100
-  const ratio = img.width / img.height
-  let drawW, drawH
-  if (ratio >= 1) {
-    drawW = targetSize * s
-    drawH = (targetSize / ratio) * s
-  } else {
-    drawH = targetSize * s
-    drawW = (targetSize * ratio) * s
-  }
-
-  const drawX = (targetSize - drawW) / 2 + (offsetX / 100) * targetSize
-  const drawY = (targetSize - drawH) / 2 + (offsetY / 100) * targetSize
+  const drawW = w * s
+  const drawH = h * s
+  const drawX = (w - drawW) / 2 + (offsetX / 100) * w
+  const drawY = (h - drawH) / 2 + (offsetY / 100) * h
 
   ctx.drawImage(img, 0, 0, img.width, img.height, drawX, drawY, drawW, drawH)
 
-  return { imageData: ctx.getImageData(0, 0, targetSize, targetSize), width: targetSize, height: targetSize }
+  return { imageData: ctx.getImageData(0, 0, w, h), width: w, height: h }
 }
